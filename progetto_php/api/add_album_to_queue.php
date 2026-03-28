@@ -10,14 +10,13 @@ if (!isset($_SESSION["user_id"])) {
 }
 
 $user_id = $_SESSION["user_id"];
-$song_id = $_POST["song_id"] ?? null;
-
-if (!$song_id) {
-    echo json_encode(["error" => "missing song_id"]);
+$album_id = $_POST["album_id"] ?? null;
+if (!$album_id) {
+    echo json_encode(["error" => "missing album_id"]);
     exit;
 }
 
-// 1. recupera o crea queue
+// 1️⃣ recupera o crea queue
 $stmt = $conn->prepare("SELECT id FROM queue WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -35,7 +34,15 @@ if (!$queue) {
     $queue_id = $queue["id"];
 }
 
-// 2. trova ultima posizione
+// 2️⃣ fetch tracce album da Deezer
+$ch = curl_init("https://api.deezer.com/album/$album_id/tracks");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($ch);
+curl_close($ch);
+
+$tracks = json_decode($response, true)["data"] ?? [];
+
+// 3️⃣ trova ultima posizione
 $stmt = $conn->prepare("SELECT MAX(position) as max_pos FROM queue_items WHERE queue_id = ?");
 $stmt->bind_param("i", $queue_id);
 $stmt->execute();
@@ -45,15 +52,14 @@ $stmt->close();
 
 $next_position = ($row["max_pos"] !== null) ? $row["max_pos"] + 1 : 0;
 
-// 3. inserisci brano in fondo
+// 4️⃣ inserisci tutte le tracce in coda nell'ordine corretto
 $stmt = $conn->prepare("INSERT INTO queue_items (queue_id, song_id_api, position) VALUES (?, ?, ?)");
-$stmt->bind_param("iii", $queue_id, $song_id, $next_position);
-$stmt->execute();
+foreach ($tracks as $t) {
+    $stmt->bind_param("iii", $queue_id, $t["id"], $next_position);
+    $stmt->execute();
+    $next_position++;
+}
 $stmt->close();
 
-echo json_encode([
-    "success" => true,
-    "queue_id" => $queue_id,
-    "position" => $next_position
-]);
+echo json_encode(["success" => true]);
 ?>

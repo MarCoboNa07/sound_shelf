@@ -1,3 +1,6 @@
+// js/player.js
+// file javascript per il player
+
 // button play/pausa sul player
 const playIcon = document.querySelector(".play-icon");
 const pauseIcon = document.querySelector(".pause-icon");
@@ -15,8 +18,11 @@ let currentTime = 0;
 let totalDuration = 0;
 
 // button per skippare canzone o tornare indietro
-document.querySelector(".next-icon").addEventListener("click", nextSong);
-document.querySelector(".prev-icon").addEventListener("click", prevSong);
+const nextBtn = document.querySelector(".next-icon");
+const prevBtn = document.querySelector(".prev-icon");
+
+nextBtn.addEventListener("click", nextSong);
+prevBtn.addEventListener("click", prevSong);
 
 // funzione per mostrare il player
 function showPlayer() {
@@ -143,8 +149,7 @@ function nextSong() {
         startPlayback(); // riproduci il brano
     } else {
         pauseSong(); // metti in pausa il brano
-        queue = []; // svuota la coda
-        currentIndex = -1;
+        currentIndex = queue.length ? queue.length - 1 : -1; // resta sull'ultima canzone se presente
         hidePlayer(); // nascondi il player
     }
 }
@@ -155,5 +160,8 @@ function prevSong() {
         currentIndex--; // passa la brano precedente
         loadCurrentSong(); // carica il brano
         startPlayback(); // riporduci il brano
+    } else {
+        currentTime = 0;
+        updateProgressUI();
     }
 }

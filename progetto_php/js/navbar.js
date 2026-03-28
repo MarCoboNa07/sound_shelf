@@ -62,39 +62,6 @@ function search() {
     });
 }
 
-// funzione per ottenere i risultati principali
-function pickMainResult(data, query) {
-    const q = query.toLowerCase();
-
-    // verifica se sono stati trovati brani
-    if (data.tracks && data.tracks.length) {
-        const exactTrack = data.tracks.find(t => t.title.toLowerCase() === q);
-        if (exactTrack) {
-            return { ...exactTrack, result_type: "song" };
-        }
-    }
-
-    // verifica se sono stati trovati album
-    if (data.albums && data.albums.length) {
-        const exactAlbum = data.albums.find(a => a.title.toLowerCase() === q);
-        if (exactAlbum) {
-            return { ...exactAlbum, result_type: "album" };
-        }
-    }
-
-    // verifica se sono stati trovati artisti
-    if (data.artist && data.artist.name.toLowerCase() === q) {
-        return { ...data.artist, result_type: "artist" };
-    }
-
-    // se non sono stati trovati dati corrispondenti alla query precisa aggiungi i primi risultati disponibili
-    if (data.tracks && data.tracks.length) return { ...data.tracks[0], result_type: "song" };
-    if (data.albums && data.albums.length) return { ...data.albums[0], result_type: "album" };
-    if (data.artist) return { ...data.artist, result_type: "artist" };
-
-    return null;
-}
-
 // funzione per renderizzare i risultati di ricerca
 function renderResults(data) {
     songsBox.innerHTML = "";
@@ -120,6 +87,7 @@ function renderResults(data) {
                 <div 
                     class="cover-overlay play-btn"
                     data-id="${item.id}"
+                    data-type="${type}"
                     data-title="${title}"
                     data-artist="${artist}"
                     data-cover="${cover}"
@@ -177,38 +145,97 @@ function renderResults(data) {
     if (data.artist) addItems([data.artist], "artist");
 }
 
-async function loadQueueFromServer() {
-    const res = await fetch("/progetto_php/api/get_queue.php");
+// fetch del brano appena cliccato (play immediato)
+async function fetchTrackNow(songId) {
+    const res = await fetch(`/progetto_php/api/get_queue.php?single=${songId}`);
     const data = await res.json();
 
-    // ricostruisci queue lato JS
-    queue = data.items.map(item => ({
-        id: item.song_id_api,
-        title: item.title,
-        artist: item.artist,
-        cover: item.cover,
-        duration: item.duration
-    }));
+    if (!data.items || data.items.length === 0) return null;
 
-    currentIndex = data.current_position;
+    return {
+        id: data.items[0].song_id_api,
+        title: data.items[0].title,
+        artist: data.items[0].artist,
+        cover: data.items[0].cover,
+        duration: data.items[0].duration
+    };
+}
+
+// prefetch dei prossimi brani senza bloccare la riproduzione
+async function prefetchRelatedTracks(currentSongId) {
+    const res = await fetch(`/progetto_php/api/get_related_tracks.php?song_id=${currentSongId}`);
+    const data = await res.json();
+
+    if (!data.related || !data.related.length) return;
+
+    const existingIds = new Set(queue.map(s => s.id));
+
+    data.related.forEach(track => {
+        if (!existingIds.has(track.id)) {
+            queue.push({
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                cover: track.cover,
+                duration: track.duration
+            });
+        }
+    });
+}
+
+async function startQueue(song) {
+    // 1. aggiungi il brano al DB
+    await fetch("/progetto_php/api/add_to_queue.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `song_id=${song.id}`
+    });
+
+    // 2. fetch immediato del brano cliccato
+    const track = await fetchTrackNow(song.id);
+    if (!track) return;
+
+    queue = [track];       // inizializza la coda con il primo brano
+    currentIndex = 0;
 
     showPlayer();
     loadCurrentSong();
     startPlayback();
+
+    // 3. fetch in background dei brani correlati
+    prefetchRelatedTracks(track.id); // non await, così non blocca la riproduzione
 }
 
-async function startQueue(song) {
-    // usa add_to_queue (che crea la queue se non esiste)
-    await fetch("/progetto_php/api/add_to_queue.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `song_id=${song.id}`
-    });
+// funzione per avviare la riproduzione di un album
+async function startAlbumQueue(albumId) {
+    // 1. fetch di tutte le tracce dell'album in ordine
+    const res = await fetch(`/progetto_php/api/get_album_tracks.php?album_id=${albumId}`);
+    const data = await res.json();
 
-    // ricarica queue dal server
-    await loadQueueFromServer();
+    if (!data.tracks || data.tracks.length === 0) return;
+
+    // 2. reset della coda con tutte le tracce
+    queue = data.tracks.map(t => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist,
+        cover: t.cover,
+        duration: t.duration
+    }));
+
+    currentIndex = 0;
+
+    showPlayer();
+    loadCurrentSong();
+    startPlayback();
+
+    // 3. aggiungi tutte le tracce al DB in ordine
+    const formData = new URLSearchParams();
+    formData.append("album_id", albumId);
+    await fetch("/progetto_php/api/add_album_to_queue.php", {
+        method: "POST",
+        body: formData
+    });
 }
 
 // funzione per caricare la canzone nel player
@@ -251,23 +278,27 @@ function startPlayback() {
 document.addEventListener("click", function (e) {
     const playBtn = e.target.closest(".play-btn");
 
-    if (!playBtn) {
-        return;
-    }
+    if (!playBtn) return;
 
     if (!isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
 
-    const song = {
-        id: playBtn.dataset.id,
-        title: playBtn.dataset.title,
-        artist: playBtn.dataset.artist,
-        cover: playBtn.dataset.cover,
-        duration: parseInt(playBtn.dataset.duration)
-    };
-    startQueue(song);
+    const type = playBtn.dataset.type; // aggiungi data-type="song" | "album"
+    if (type === "song") {
+        const song = {
+            id: playBtn.dataset.id,
+            title: playBtn.dataset.title,
+            artist: playBtn.dataset.artist,
+            cover: playBtn.dataset.cover,
+            duration: parseInt(playBtn.dataset.duration)
+        };
+        startQueue(song);
+    } else if (type === "album") {
+        const albumId = playBtn.dataset.id;
+        startAlbumQueue(albumId);
+    }
 });
 
 // funzione per nascondere i risultati di ricerca se si clicca al di fuori di essi

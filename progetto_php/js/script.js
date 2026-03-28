@@ -19,9 +19,6 @@ function formatDuration(seconds) {
 
 document.addEventListener("DOMContentLoaded", async () => {
     await checkSession();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
     toggleMobileMenu();
     initProgressBarControls();
     search();
