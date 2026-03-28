@@ -1,0 +1,51 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 32px;
+    background: #282828;
+    border-radius: 12px 12px 0 0;
+}
+
+.content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.genres-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.genre-card {
+    position: relative;
+    height: 120px;
+    padding: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .2s;
+}
+
+.genre-card:hover {
+    transform: scale(1.05);
+}
+
+.genre-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+}
+
+.genre-image {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 90px;
+    transform: rotate(25deg);
+    box-shadow: 0 4px 10px rgba(0,0,0,.4);
+}

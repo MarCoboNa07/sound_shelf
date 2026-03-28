@@ -1,0 +1,179 @@
+/* contenitore principale */
+.top-container {
+    position: relative;
+    width: 100%;
+    margin-right: 0;
+    overflow: hidden;
+    transition: width 0.3s ease, margin 0.3s ease;
+}
+
+body.player-open .top-container {
+    width: calc(100% - 25% - 16px);
+    margin-right: 16px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.top-bg {
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(40, 40, 40, 0.9) 65%, #282828 85%),
+        url("../src/home_background.png");
+    background-size: cover;
+    background-position: center;
+
+    z-index: 0;
+}
+
+.main-content {
+    position: relative;
+    width: 100%;
+    z-index: 2;
+}
+
+/* sezione contenuti in tendenza */
+.trending-container {
+    padding-bottom: 32px;
+}
+
+.trending-section {
+    padding: 20px 32px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    color: white;
+    font-size: 22px;
+}
+
+.carousel-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.carousel-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+.carousel-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: white;
+    stroke-width: 2;
+    fill: none;
+}
+
+.trending-carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+}
+
+.trending-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.trending-card {
+    width: 182px;
+    flex: 0 0 auto;
+    background: #181818;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all .25s;
+    cursor: pointer;
+}
+
+.trending-card:hover {
+    background: #282828;
+}
+
+.trending-cover-wrapper {
+    position: relative;
+}
+
+.trending-card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.trending-card.artist img {
+    border-radius: 50%;
+}
+
+.trending-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.trending-title {
+    font-size: 16px;
+    color: #ffffff;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trending-artist {
+    color: #b3b3b3;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trending-title:hover,
+.trending-artist:hover {
+    text-decoration: underline;
+}
+
+.trending-play {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #1db954;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .25s;
+}
+
+.trending-card:hover .trending-play {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.trending-play svg {
+    width: 20px;
+    height: 20px;
+    fill: black;
+}
