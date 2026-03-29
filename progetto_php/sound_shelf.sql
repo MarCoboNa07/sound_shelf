@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Mar 28, 2026 alle 13:55
+-- Creato il: Mar 29, 2026 alle 18:48
 -- Versione del server: 10.4.32-MariaDB
 -- Versione PHP: 8.2.12
 
@@ -76,6 +76,13 @@ CREATE TABLE `queue` (
   `current_song_id_api` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dump dei dati per la tabella `queue`
+--
+
+INSERT INTO `queue` (`id`, `current_position`, `current_song_time`, `created_at`, `user_id`, `current_song_id_api`) VALUES
+(10, 4, 0, '2026-03-29 16:40:57', 1, 131740882);
+
 -- --------------------------------------------------------
 
 --
@@ -88,6 +95,13 @@ CREATE TABLE `queue_items` (
   `queue_id` int(11) NOT NULL,
   `song_id_api` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dump dei dati per la tabella `queue_items`
+--
+
+INSERT INTO `queue_items` (`id`, `position`, `queue_id`, `song_id_api`) VALUES
+(259, 0, 10, 131740882);
 
 -- --------------------------------------------------------
 
@@ -146,6 +160,7 @@ ALTER TABLE `queue`
 --
 ALTER TABLE `queue_items`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_queue_song` (`queue_id`,`song_id_api`),
   ADD KEY `queue_id` (`queue_id`);
 
 --
@@ -180,13 +195,13 @@ ALTER TABLE `playlist_items`
 -- AUTO_INCREMENT per la tabella `queue`
 --
 ALTER TABLE `queue`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT per la tabella `queue_items`
 --
 ALTER TABLE `queue_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260;
 
 --
 -- AUTO_INCREMENT per la tabella `users`

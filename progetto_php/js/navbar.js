@@ -121,7 +121,7 @@ function renderResults(data) {
             <div class="search-item-actions">
                 ${type === "artist" ?
                     `<button class="follow-btn">Segui</button>`
-                    : 
+                    :
                     `
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle playlist-icon" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
@@ -173,20 +173,17 @@ async function prefetchRelatedTracks(currentSongId) {
 
     data.related.forEach(track => {
         if (!existingIds.has(track.id)) {
-            const newTrack = {
+            newTracks.push({
                 id: track.id,
                 title: track.title,
                 artist: track.artist,
                 cover: track.cover,
                 duration: track.duration
-            };
-
-            queue.push(newTrack);
-            newTracks.push(newTrack); // 👈 salva per il DB
+            });
         }
     });
 
-    // 🔥 salva anche nel database
+    // 👉 salva prima nel DB
     if (newTracks.length > 0) {
         await fetch("/progetto_php/api/add_related_tracks.php", {
             method: "POST",
@@ -195,6 +192,9 @@ async function prefetchRelatedTracks(currentSongId) {
             },
             body: "tracks=" + encodeURIComponent(JSON.stringify(newTracks))
         });
+
+        // 👉 SOLO DOPO aggiorni la queue locale
+        queue.push(...newTracks);
     }
 }
 
