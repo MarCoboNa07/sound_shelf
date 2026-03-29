@@ -142,9 +142,17 @@ function togglePlayPause() {
 }
 
 // funzione saltare al brano successivo
-function nextSong() {
+async function nextSong() {
     if (currentIndex < queue.length - 1) { // verifica se esiste un brano in coda
         currentIndex++; // passa al brano successivo
+
+         // 🔥 sync DB
+        await fetch("/progetto_php/api/update_queue_position.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `position=${currentIndex}`
+        });
+
         loadCurrentSong(); // carica il brano
         startPlayback(); // riproduci il brano
     } else {
@@ -155,9 +163,17 @@ function nextSong() {
 }
 
 // funzione per tornare al brano precedente
-function prevSong() {
+async function prevSong() {
     if (currentIndex > 0) { // verifica se esiste un brano prima
         currentIndex--; // passa la brano precedente
+
+        // 🔥 sync DB
+        await fetch("/progetto_php/api/update_queue_position.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `position=${currentIndex}`
+        });
+
         loadCurrentSong(); // carica il brano
         startPlayback(); // riporduci il brano
     } else {

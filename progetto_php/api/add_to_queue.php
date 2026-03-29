@@ -21,13 +21,16 @@ if (!$song_id) {
 $stmt = $conn->prepare("SELECT id FROM queue WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$result = $stmt->get_result();
-$queue = $result->fetch_assoc();
+$res = $stmt->get_result();
+$queue = $res->fetch_assoc();
 $stmt->close();
 
 if (!$queue) {
-    $stmt = $conn->prepare("INSERT INTO queue (user_id, current_position) VALUES (?, 0)");
-    $stmt->bind_param("i", $user_id);
+    $stmt = $conn->prepare("
+        INSERT INTO queue (user_id, current_position, current_song_time, current_song_id_api)
+        VALUES (?, 0, 0, ?)
+    ");
+    $stmt->bind_param("ii", $user_id, $song_id);
     $stmt->execute();
     $queue_id = $conn->insert_id;
     $stmt->close();
@@ -35,25 +38,32 @@ if (!$queue) {
     $queue_id = $queue["id"];
 }
 
-// 2. trova ultima posizione
-$stmt = $conn->prepare("SELECT MAX(position) as max_pos FROM queue_items WHERE queue_id = ?");
+// 2. RESET COMPLETO
+$stmt = $conn->prepare("DELETE FROM queue_items WHERE queue_id = ?");
 $stmt->bind_param("i", $queue_id);
 $stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
 $stmt->close();
 
-$next_position = ($row["max_pos"] !== null) ? $row["max_pos"] + 1 : 0;
-
-// 3. inserisci brano in fondo
-$stmt = $conn->prepare("INSERT INTO queue_items (queue_id, song_id_api, position) VALUES (?, ?, ?)");
-$stmt->bind_param("iii", $queue_id, $song_id, $next_position);
+// 3. inserisci primo brano
+$stmt = $conn->prepare("
+    INSERT INTO queue_items (queue_id, song_id_api, position)
+    VALUES (?, ?, 0)
+");
+$stmt->bind_param("ii", $queue_id, $song_id);
 $stmt->execute();
 $stmt->close();
 
-echo json_encode([
-    "success" => true,
-    "queue_id" => $queue_id,
-    "position" => $next_position
-]);
+// 4. aggiorna stato queue
+$stmt = $conn->prepare("
+    UPDATE queue 
+    SET current_position = 0,
+        current_song_time = 0,
+        current_song_id_api = ?
+    WHERE id = ?
+");
+$stmt->bind_param("ii", $song_id, $queue_id);
+$stmt->execute();
+$stmt->close();
+
+echo json_encode(["success" => true]);
 ?>

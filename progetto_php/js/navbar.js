@@ -169,18 +169,33 @@ async function prefetchRelatedTracks(currentSongId) {
     if (!data.related || !data.related.length) return;
 
     const existingIds = new Set(queue.map(s => s.id));
+    const newTracks = [];
 
     data.related.forEach(track => {
         if (!existingIds.has(track.id)) {
-            queue.push({
+            const newTrack = {
                 id: track.id,
                 title: track.title,
                 artist: track.artist,
                 cover: track.cover,
                 duration: track.duration
-            });
+            };
+
+            queue.push(newTrack);
+            newTracks.push(newTrack); // 👈 salva per il DB
         }
     });
+
+    // 🔥 salva anche nel database
+    if (newTracks.length > 0) {
+        await fetch("/progetto_php/api/add_related_tracks.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "tracks=" + encodeURIComponent(JSON.stringify(newTracks))
+        });
+    }
 }
 
 async function startQueue(song) {
@@ -208,13 +223,28 @@ async function startQueue(song) {
 
 // funzione per avviare la riproduzione di un album
 async function startAlbumQueue(albumId) {
-    // 1. fetch di tutte le tracce dell'album in ordine
     const res = await fetch(`/progetto_php/api/get_album_tracks.php?album_id=${albumId}`);
     const data = await res.json();
 
     if (!data.tracks || data.tracks.length === 0) return;
 
-    // 2. reset della coda con tutte le tracce
+    // 🔥 1. reset DB con PRIMA traccia
+    await fetch("/progetto_php/api/add_to_queue.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `song_id=${data.tracks[0].id}`
+    });
+
+    // 🔥 2. aggiungi resto album al DB
+    await fetch("/progetto_php/api/add_related_tracks.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "tracks=" + encodeURIComponent(JSON.stringify(data.tracks.slice(1)))
+    });
+
+    // 🔥 3. frontend queue
     queue = data.tracks.map(t => ({
         id: t.id,
         title: t.title,
@@ -228,14 +258,6 @@ async function startAlbumQueue(albumId) {
     showPlayer();
     loadCurrentSong();
     startPlayback();
-
-    // 3. aggiungi tutte le tracce al DB in ordine
-    const formData = new URLSearchParams();
-    formData.append("album_id", albumId);
-    await fetch("/progetto_php/api/add_album_to_queue.php", {
-        method: "POST",
-        body: formData
-    });
 }
 
 // funzione per caricare la canzone nel player

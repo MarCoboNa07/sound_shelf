@@ -17,11 +17,35 @@ function formatDuration(seconds) {
     return `${m}:${s}`;
 }
 
+async function loadQueueFromDB() {
+    const res = await fetch("/progetto_php/api/get_queue.php");
+    const data = await res.json();
+
+    if (!data.items || !data.items.length) return;
+
+    queue = data.items.map(item => ({
+        id: item.song_id_api,
+        title: item.title,
+        artist: item.artist,
+        cover: item.cover,
+        duration: item.duration
+    }));
+
+    currentIndex = Math.min(data.current_position || 0, queue.length - 1);
+
+    showPlayer();
+    loadCurrentSong();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     await checkSession();
     toggleMobileMenu();
     initProgressBarControls();
     search();
+
+    if (isLogged) {
+        loadQueueFromDB();
+    }
 
     const form = document.querySelector("#search-form");
     form.addEventListener("submit", e => e.preventDefault());
