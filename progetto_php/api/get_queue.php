@@ -38,7 +38,7 @@ function fetchTrack($id) {
         "song_id_api" => $id,
         "title" => $track["title"],
         "artist" => $track["artist"]["name"],
-        "cover" => $track["album"]["cover"],
+        "cover" => $track["album"]["cover_xl"],
         "duration" => $track["duration"]
     ];
 }

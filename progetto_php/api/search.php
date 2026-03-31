@@ -15,8 +15,7 @@ if ($searchQuery === "") {
 }
 
 // funzione per effettuare la ricerca tramite l'api di Deezer
-function search($query, $limit = 15)
-{
+function search($query, $limit = 15) {
     $url = "https://api.deezer.com/search?q=" . urlencode($query) . "&limit=$limit"; // endpoint di Deezer per la ricerca
 
     // effettua una richiesta http verso un'api
@@ -70,7 +69,7 @@ if ($artistData) {
     $results["artist"] = [ // salva l'artista nell'array dei risultati
         "id" => $artistData["id"],
         "name" => $artistData["name"],
-        "picture" => $artistData["picture_medium"],
+        "picture" => $artistData["picture_xl"],
         "link" => $artistData["link"]
     ];
 }
@@ -84,7 +83,7 @@ foreach ($data as $item) {
             "id" => $item["id"],
             "title" => $item["title"],
             "album" => $item["album"]["title"],
-            "cover" => $item["album"]["cover_medium"],
+            "cover" => $item["album"]["cover_xl"],
             "link" => $item["link"],
             "explicit" => $item["explicit_lyrics"],
             "artist" => $item["artist"]["name"],
@@ -97,7 +96,7 @@ foreach ($data as $item) {
         $results["albums"][] = [ // salva l'album nell'array dei risultati
             "id" => $item["album"]["id"],
             "title" => $item["album"]["title"],
-            "cover" => $item["album"]["cover_medium"],
+            "cover" => $item["album"]["cover_xl"],
             "link" => $item["album"]["link"] ?? null,
             "artist" => $item["artist"]["name"]
         ];

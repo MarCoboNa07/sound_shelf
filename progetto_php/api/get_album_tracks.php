@@ -8,14 +8,19 @@ if (!$album_id) {
     exit;
 }
 
-// 1️⃣ fetch dati album (per cover)
+// 1️⃣ fetch dati generali album (Titolo, Cover, Data di rilascio)
 $ch = curl_init("https://api.deezer.com/album/$album_id");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $albumRes = curl_exec($ch);
 curl_close($ch);
 
-$album = json_decode($albumRes, true);
-$fallbackCover = $album["cover_medium"] ?? "";
+$albumData = json_decode($albumRes, true);
+
+// Estraiamo i nuovi dati richiesti
+$albumTitle = $albumData["title"] ?? "Unknown Album";
+$releaseDate = $albumData["release_date"] ?? ""; // Formato "YYYY-MM-DD"
+$releaseYear = !empty($releaseDate) ? explode("-", $releaseDate)[0] : "N/A";
+$fallbackCover = $albumData["cover_xl"] ?? "";
 
 // 2️⃣ fetch tracce album
 $ch = curl_init("https://api.deezer.com/album/$album_id/tracks");
@@ -31,10 +36,16 @@ foreach ($tracks as $t) {
         "id" => $t["id"],
         "title" => $t["title"],
         "artist" => $t["artist"]["name"] ?? "",
-        "cover" => $t["album"]["cover_medium"] ?? $fallbackCover, // fallback se non presente
+        "cover" => $t["album"]["cover_xl"] ?? $fallbackCover,
         "duration" => $t["duration"] ?? 0
     ];
 }
 
-echo json_encode(["tracks" => $albumTracks]);
+// 3️⃣ Restituiamo tutto in un unico oggetto
+echo json_encode([
+    "album_title" => $albumTitle,
+    "album_year"  => $releaseYear,
+    "album_cover" => $fallbackCover,
+    "tracks"      => $albumTracks
+]);
 ?>

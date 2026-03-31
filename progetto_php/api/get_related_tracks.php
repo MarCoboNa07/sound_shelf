@@ -31,7 +31,7 @@ if (!$track || isset($track["error"])) {
 // 2️⃣ Funzione helper per normalizzare i dati delle tracce
 // ============================
 function normalizeTrack($t, $fallbackCover = "") {
-    $cover = $t["album"]["cover_medium"] ?? $fallbackCover ?? "";
+    $cover = $t["album"]["cover_xl"] ?? $fallbackCover ?? "";
     return [
         "id" => $t["id"] ?? 0,
         "title" => $t["title"] ?? "",
@@ -45,7 +45,7 @@ function normalizeTrack($t, $fallbackCover = "") {
 // 3️⃣ Costruisci array dei brani correlati
 // ============================
 $relatedTracks = [];
-$fallbackCover = $track["album"]["cover_medium"] ?? "";
+$fallbackCover = $track["album"]["cover_xl"] ?? "";
 $addedIds = []; // per evitare duplicati
 
 // --- Funzione per aggiungere tracce evitando duplicati ---
