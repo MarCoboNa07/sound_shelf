@@ -98,6 +98,7 @@ body.player-open .top-container {
     background: #181818;
     border-radius: 12px;
     padding: 16px;
+    text-decoration: none;
     transition: all .25s;
     cursor: pointer;
 }

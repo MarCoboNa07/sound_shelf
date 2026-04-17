@@ -109,8 +109,9 @@ function renderTrendingAlbums(albums) {
 
     // ciclo foreach per scorrere l'array degli album in tendenza
     albums.forEach(item => {
-        const card = document.createElement("div");
+        const card = document.createElement("a");
         card.classList.add("trending-card");
+        card.href = `/progetto_php/album.php?album_id=${item.id}`;
 
         let image = item.cover;
         let title = item.title;
@@ -133,7 +134,7 @@ function renderTrendingAlbums(albums) {
                 ${playButton}
             </div>
             <div class="trending-info">
-                <a href="#" class="trending-title">${title}</a>
+                <a href=${`/progetto_php/album.php?album_id=${item.id}`} class="trending-title">${title}</a>
                 <a href="#" class="trending-artist">${subtitle}</a>
             </div>
         `;
@@ -156,7 +157,7 @@ function initTrendingCarousel(type) {
     // funzione per scorrere in avanti il carosello
     next.addEventListener("click", () => {
         const card = carousel.querySelector(".trending-card");
-        
+
         // verifica l'esistenza della card del carosello
         if (!card) {
             return;

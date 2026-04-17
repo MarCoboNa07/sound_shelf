@@ -100,7 +100,7 @@ function renderResults(data) {
             </div>
 
             <div class="search-item-content">
-                <a href="#" class="item-title">${title}</a>
+                <a href="/progetto_php/album.php?album_id=${item.id}" class="item-title">${title}</a>
                 <div class="item-bottom">
                     ${type === "artist" ?
                     `<span class="item-type">Artista</span>`
