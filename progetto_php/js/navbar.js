@@ -66,13 +66,27 @@ function search() {
 function renderResults(data) {
     songsBox.innerHTML = "";
 
-    // funzione per creare il risultato di ricerca e renderizzarlo sulla pagina
     function addItems(items, type) {
-        items.forEach(item => { // ciclo forech per scorrere l'array dei risultati di ricerca
+        items.forEach(item => {
             const title = item.title || item.name;
             const artist = item.artist || item.name || "";
             const cover = item.cover || item.picture || "";
             const duration = item.duration || 0;
+
+            // --- NUOVA LOGICA PER IL LINK ---
+            let destinationUrl = "#";
+
+            if (type === "song") {
+                // Se l'API ci restituisce una canzone, mandiamo l'utente SEMPRE alla pagina track
+                // Indipendentemente dal fatto che faccia parte di un album o sia un singolo
+                destinationUrl = `/progetto_php/track.php?track_id=${item.id}`;
+            } else if (type === "album") {
+                // Solo se l'utente clicca su un risultato della categoria Album va alla pagina album
+                destinationUrl = `/progetto_php/album.php?album_id=${item.id}`;
+            } else if (type === "artist") {
+                destinationUrl = `/progetto_php/artist.php?artist_id=${item.id}`;
+            }
+            // --------------------------------
 
             const div = document.createElement("div");
             div.classList.add("search-item");
@@ -100,7 +114,7 @@ function renderResults(data) {
             </div>
 
             <div class="search-item-content">
-                <a href="/progetto_php/album.php?album_id=${item.id}" class="item-title">${title}</a>
+                <a href="${destinationUrl}" class="item-title">${title}</a>
                 <div class="item-bottom">
                     ${type === "artist" ?
                     `<span class="item-type">Artista</span>`
@@ -116,22 +130,6 @@ function renderResults(data) {
                             : ""
                 }
                 </div>
-            </div>
-
-            <div class="search-item-actions">
-                ${type === "artist" ?
-                    `<button class="follow-btn">Segui</button>`
-                    :
-                    `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle playlist-icon" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
-                    </svg>
-                    ${type === "song" ? `<span class="song-duration">${formatDuration(duration)}</span>` : ""}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots more-icon" viewBox="0 0 16 16">
-                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                    </svg>`
-                }
             </div>
             `;
 

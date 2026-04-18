@@ -26,40 +26,44 @@ function renderTrendingSongs(tracks) {
     const container = document.querySelector("#trending-carousel-songs");
     container.innerHTML = "";
 
-    // ciclo foreahc per scorrere l'array dei brani in tendenza
     tracks.forEach(item => {
-        const card = document.createElement("div");
+        // Creiamo la card direttamente come elemento <a>
+        const card = document.createElement("a");
         card.classList.add("trending-card");
+        
+        // L'intera card punta alla pagina del brano
+        card.href = `/progetto_php/track.php?track_id=${item.id}`;
 
-        let image = item.cover;
-        let title = item.title;
         let subtitle = `${item.explicit ? '<span class="explicit-label">E</span> ' : ''}${item.artist}`;
-
-        let playButton = `
-            <div class="trending-play play-btn"
-                data-type="song"
-                data-id="${item.id}"
-                data-title="${item.title}"
-                data-artist="${item.artist}"
-                data-cover="${item.cover}"
-                data-duration="${item.duration}"
-                data-preview="${item.preview}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
-                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                </svg>
-            </div>
-        `;
 
         card.innerHTML = `
             <div class="trending-cover-wrapper">
-                <img src="${image}" alt="${title}">
-                ${playButton}
+                <img src="${item.cover}" alt="${item.title}">
+                
+                <div class="trending-play play-btn"
+                    data-type="song"
+                    data-id="${item.id}"
+                    data-title="${item.title}"
+                    data-artist="${item.artist}"
+                    data-cover="${item.cover}"
+                    data-duration="${item.duration}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                    </svg>
+                </div>
             </div>
             <div class="trending-info">
-                <a href="#" class="trending-title">${title}</a>
-                <a href="#" class="trending-artist">${subtitle}</a>
+                <span class="trending-title">${item.title}</span>
+                <span class="trending-artist">${subtitle}</span>
             </div>
         `;
+
+        // Impedisce al link della card di attivarsi se clicchi sul pulsante Play
+        const playBtn = card.querySelector(".play-btn");
+        playBtn.addEventListener("click", (e) => {
+            e.preventDefault();  // Blocca la navigazione del tag <a> (la card)
+            e.stopPropagation(); // Evita che il click risalga verso l'alto
+        });
 
         container.appendChild(card);
     });

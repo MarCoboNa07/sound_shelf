@@ -15,7 +15,8 @@ if ($searchQuery === "") {
 }
 
 // funzione per effettuare la ricerca tramite l'api di Deezer
-function search($query, $limit = 15) {
+function search($query, $limit = 15)
+{
     $url = "https://api.deezer.com/search?q=" . urlencode($query) . "&limit=$limit"; // endpoint di Deezer per la ricerca
 
     // effettua una richiesta http verso un'api
@@ -40,7 +41,8 @@ function search($query, $limit = 15) {
 }
 
 // funzione per cercare gli artisti
-function searchArtist($query) {
+function searchArtist($query)
+{
     $url = "https://api.deezer.com/search/artist?q=" . urlencode($query) . "&limit=1"; // endpoint di Deezer per la ricerca degli artisti
 
     // effettua una richiesta http verso un'api
@@ -82,7 +84,10 @@ foreach ($data as $item) {
         $results["tracks"][] = [ // salva il brano nell'array dei risultati
             "id" => $item["id"],
             "title" => $item["title"],
-            "album" => $item["album"]["title"],
+            "album" => [
+                "id"    => $item["album"]["id"],
+                "title" => $item["album"]["title"]
+            ],
             "cover" => $item["album"]["cover_xl"],
             "link" => $item["link"],
             "explicit" => $item["explicit_lyrics"],
