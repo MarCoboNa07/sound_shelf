@@ -42,7 +42,7 @@
     color: #ffffff;
     font-size: 96px;
     font-weight: 900;
-    line-height: 1;
+    line-height: 1.2;
     white-space: nowrap;
     letter-spacing: -2px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
@@ -107,7 +107,7 @@
     height: 1px;
     border: none;
     background-color: #c2c2c2;
-    margin-bottom: 8px;
+    margin: 8px 0;
 }
 
 /* TRACKLIST */
@@ -115,32 +115,56 @@
     padding: 20px 40px 60px 40px;
 }
 
+/* Struttura uniforme per Header e Righe */
 .tracklist-header,
 .track-row {
     display: grid;
-    grid-template-columns: 50px minmax(0, 1fr) 120px;
+    grid-template-columns: 50px 1fr 40px 60px 40px 10px;
     align-items: center;
-    gap: 16px;
+    padding: 0 20px;
 }
 
+/* Allineamento specifico per l'intestazione nell'header */
 .col-duration {
-    text-align: left;
-    grid-column: 3;
-}
-
-.track-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
-    grid-column: 3;
+    grid-column: 4;
+    text-align: center;
+    color: #c2c2c2;
+    font-size: 14px;
 }
 
 .track-duration {
-    min-width: 45px;
-    text-align: right;
+    grid-column: 4;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
     color: #c2c2c2;
     font-size: 14px;
+}
+
+.track-action-plus {
+    grid-column: 3;
+    display: flex;
+    justify-content: center;
+}
+
+.track-action-more {
+    grid-column: 5;
+    display: flex;
+    justify-content: center;
+}
+
+.track-action-btn {
+    background: transparent;
+    border: none;
+    color: #c2c2c2;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+}
+
+.track-row:hover .track-action-btn {
+    opacity: 1;
 }
 
 /* HEADER */

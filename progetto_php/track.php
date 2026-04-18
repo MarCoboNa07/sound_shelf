@@ -1,6 +1,6 @@
 <?php
 session_start();
-$album_id = $_GET["album_id"] ?? null; // 54852172
+$track_id = $_GET["track_id"] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -10,31 +10,30 @@ $album_id = $_GET["album_id"] ?? null; // 54852172
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/track.css">
     <link rel="stylesheet" href="./css/album.css">
     <link rel="stylesheet" href="./css/navbar.css">
-    <link rel="stylesheet" href="./css//player.css">
-    <title>Document</title>
+    <link rel="stylesheet" href="./css/player.css">
+    <title>Brano</title>
 </head>
 
-<body data-album-id="<?php echo htmlspecialchars($album_id); ?>">
+<body data-track-id="<?php echo htmlspecialchars($track_id); ?>">
     <div class="top-container">
         <?php include "./components/navbar.php"; ?>
 
         <div class="main-content">
-            <div id="album-container" class="album-page">
-
+            <div id="track-page-container" class="album-page">
                 <header class="album-header">
-                    <img id="album-cover" class="album-cover" src="" alt="Cover">
-
+                    <img id="track-cover" class="album-cover" src="" alt="Cover">
                     <div class="album-info">
-                        <span class="album-type">Album</span>
-                        <h1 id="album-title" class="album-title">Caricamento...</h1>
-                        <p id="album-meta" class="album-meta"></p>
+                        <span class="album-type">Singolo</span>
+                        <h1 id="track-title" class="album-title">Caricamento...</h1>
+                        <p id="track-meta" class="album-meta"></p>
                     </div>
                 </header>
 
                 <div class="album-actions">
-                    <button class="play-btn main-play" data-type="album" data-id="<?php echo $album_id; ?>">
+                    <button class="play-btn main-play" id="main-play-track">
                         <svg viewBox="0 0 16 16" width="16" height="16">
                             <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
                         </svg>
@@ -63,15 +62,15 @@ $album_id = $_GET["album_id"] ?? null; // 54852172
                         <span></span>
                     </div>
                     <hr class="divider">
-                    <div id="tracks-container" class="tracks-container"></div>
+                    <div id="single-track-container" class="tracks-container"></div>
                 </div>
-
             </div>
         </div>
     </div>
     <?php include "./components/player.php"; ?>
 
     <script src="./js/script.js"></script>
+    <script src="./js/track.js"></script>
     <script src="./js/album.js"></script>
     <script src="./js/navbar.js"></script>
     <script src="./js/player.js"></script>
