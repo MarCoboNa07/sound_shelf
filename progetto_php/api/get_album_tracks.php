@@ -39,7 +39,8 @@ foreach ($tracks as $t) {
         "artist_id" => $t["artist"]["id"] ?? null,
         "cover" => $t["album"]["cover_xl"] ?? $fallbackCover,
         "duration" => $t["duration"] ?? 0,
-        "explicit" => $t["explicit_lyrics"]
+        "explicit" => $t["explicit_lyrics"],
+        "rank" => $t["rank"] ?? 0
     ];
 }
 

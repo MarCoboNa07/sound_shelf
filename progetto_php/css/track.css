@@ -20,11 +20,11 @@
     overflow: hidden;
 }
 
+.track-title:hover {
+    text-decoration: underline;
+}
+
 #track-meta {
     color: #c2c2c2;
     font-size: 14px;
-}
-
-#single-track-container .track-row {
-    grid-template-columns: 50px 1fr 40px 60px 40px 10px;
 }

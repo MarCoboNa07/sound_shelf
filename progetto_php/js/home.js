@@ -30,7 +30,7 @@ function renderTrendingSongs(tracks) {
         // Creiamo la card direttamente come elemento <a>
         const card = document.createElement("a");
         card.classList.add("trending-card");
-        
+
         // L'intera card punta alla pagina del brano
         card.href = `/progetto_php/track.php?track_id=${item.id}`;
 
@@ -54,7 +54,7 @@ function renderTrendingSongs(tracks) {
             </div>
             <div class="trending-info">
                 <span class="trending-title">${item.title}</span>
-                <span class="trending-artist">${subtitle}</span>
+                <a href="/progetto_php/artist.php?artist_id=${item.artist_id}" class="trending-artist">${subtitle}</a>
             </div>
         `;
 
@@ -76,7 +76,8 @@ function renderTrendingArtists(artists) {
 
     // ciclo foreach per scorrere l'array degli artisti in tendenza
     artists.forEach(item => {
-        const card = document.createElement("div");
+        const card = document.createElement("a");
+        card.href = `/progetto_php/artist.php?artist_id=${item.id}`;
         card.classList.add("trending-card", "artist");
 
         let image = item.picture;
@@ -97,8 +98,8 @@ function renderTrendingArtists(artists) {
                 ${playButton}
             </div>
             <div class="trending-info">
-                <a href="#" class="trending-title">${title}</a>
-                <a href="#" class="trending-artist">${subtitle}</a>
+                <span class="trending-title">${title}</span>
+                <span class="trending-artist-label">Artista</span>
             </div>
         `;
 
@@ -139,7 +140,7 @@ function renderTrendingAlbums(albums) {
             </div>
             <div class="trending-info">
                 <a href=${`/progetto_php/album.php?album_id=${item.id}`} class="trending-title">${title}</a>
-                <a href="#" class="trending-artist">${subtitle}</a>
+                <a href="/progetto_php/artist.php?artist_id=${item.artist_id}" class="trending-artist">${subtitle}</a>
             </div>
         `;
 

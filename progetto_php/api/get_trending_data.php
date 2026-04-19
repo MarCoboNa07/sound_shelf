@@ -44,6 +44,7 @@ if (!empty($data["albums"]["data"])) {
             "title" => $album["title"],
             "cover" => $album["cover_xl"],
             "artist" => $album["artist"]["name"] ?? "",
+            "artist_id" => $album["artist"]["id"],
             "link" => $album["link"]
         ];
     }
@@ -57,6 +58,7 @@ if (!empty($data["tracks"]["data"])) {
             "id" => $track["id"],
             "title" => $track["title"],
             "artist" => $track["artist"]["name"] ?? "",
+            "artist_id" => $track["artist"]["id"],
             "album" => $track["album"]["title"] ?? "",
             "cover" => $track["album"]["cover_xl"] ?? "",
             "duration" => $track["duration"],

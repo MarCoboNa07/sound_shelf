@@ -30,6 +30,7 @@ echo json_encode([
     "cover" => $data["album"]["cover_xl"],
     "duration" => $data["duration"],
     "release_date" => $data["release_date"],
-    "explicit" => $data["explicit_lyrics"]
+    "explicit" => $data["explicit_lyrics"],
+    "rank" => $data["rank"] ?? 0
 ]);
 ?>

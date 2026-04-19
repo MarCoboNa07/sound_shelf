@@ -53,10 +53,12 @@ function renderTrackPage(track) {
                 <span class="track-title">${track.title}</span>
                 <span class="track-artist">
                     ${track.explicit ? `<span class="explicit-label">E</span>` : ""}
-                    <a href="#" class="artist-link">${track.artist}</a>
+                    <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a>
                 </span>
             </div>
         </div>
+
+        <span class="track-rank">${formatPlays(track.rank)}</span>
 
         <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
             <svg viewBox="0 0 16 16" width="16" height="16">

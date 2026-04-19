@@ -58,6 +58,7 @@ $album_id = $_GET["album_id"] ?? null; // 54852172
                     <div class="tracklist-header">
                         <span class="col-number">#</span>
                         <span class="col-title">Titolo</span>
+                        <span class="col-rank">Ascolti</span>
                         <span></span>
                         <span class="col-duration">Durata</span>
                         <span></span>

@@ -138,7 +138,8 @@ body.player-open .top-container {
     text-overflow: ellipsis;
 }
 
-.trending-artist {
+.trending-artist,
+.trending-artist-label {
     color: #b3b3b3;
     font-size: 14px;
     text-decoration: none;

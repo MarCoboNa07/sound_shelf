@@ -48,7 +48,7 @@ function renderAlbumPage(data) {
     }, 0);
     const totalDuration = formatDuration(totalSeconds);
 
-    albumMeta.innerHTML = `<a href="#" class="artist-link">${artistName}</a> • ${year} • ${trackCount} brani, ${totalDuration}`;
+    albumMeta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${artistId}" class="artist-link">${artistName}</a> • ${year} • ${trackCount} brani, ${totalDuration}`;
     tracksContainer.innerHTML = "";
 
     tracks.forEach((track, index) => {
@@ -68,10 +68,12 @@ function renderAlbumPage(data) {
                     <span class="track-title">${track.title}</span>
                     <span class="track-artist">
                         ${track.explicit ? `<span class="explicit-label">E</span>` : ""}
-                        <a href="#" class="artist-link">${track.artist}</a>
+                        <a href="/progetto_php/artist.php?artist_id=${artistId}" class="artist-link">${track.artist}</a>
                     </span>
                 </div>
             </div>
+
+            <span class="track-rank">${formatPlays(track.rank)}</span>
 
             <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -147,4 +149,10 @@ function applyAlbumGradient([r, g, b]) {
             #121212 100%
         )
     `;
+}
+
+function formatPlays(num) {
+    if (!num) return "—";
+
+    return num.toLocaleString("it-IT");
 }
