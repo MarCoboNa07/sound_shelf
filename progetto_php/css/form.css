@@ -1,14 +1,32 @@
 body {
     display: flex;
     justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
 }
 
 .main-container {
-    width: 50%;
-    margin: 40px 0 60px 0;
-    padding: 32px;
-    border-radius: 24px;
-    background-color: #282828;
+    width: 420px;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(40, 40, 40, 0.6);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.08);
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 form {
@@ -25,9 +43,13 @@ form {
 }
 
 .form-header h2 {
-    font-size: 48px;
-    font-weight: bold;
+    font-size: 42px;
     color: #ffffff;
+}
+
+.form-header p {
+    color: #cfcfcf;
+    font-size: 14px;
 }
 
 .form-header p {
@@ -69,13 +91,26 @@ form {
 
 .input-wrapper input {
     width: 100%;
-    padding: 12px 16px 12px 44px;
-    font-size: 16px;
-    color: #ffffff;
-    border: 1px solid #c2c2cc;
-    border-radius: 12px;
-    outline: none;
-    background-color: #282828;
+    padding: 14px 16px 14px 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    transition: all 0.25s ease;
+}
+
+.input-wrapper input:focus {
+    border-color: #0b57d0;
+    box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.3);
+}
+
+.input-wrapper svg {
+    color: #aaa;
+    transition: 0.2s;
+}
+
+.input-wrapper input:focus + svg {
+    color: #0b57d0;
 }
 
 .checkbox-label {
@@ -110,13 +145,15 @@ form {
     font-weight: bold;
     border: none;
     outline: none;
-    background-color: rgba(11, 87, 208, 1);
+    background: linear-gradient(135deg, #0b57d0, #3a8bfd);
+    box-shadow: 0 8px 20px rgba(11, 87, 208, 0.4);
     transition: all 0.25s ease-in-out;
     cursor: pointer;
 }
 
 .form-footer button:hover {
-    background-color: rgba(11, 87, 208, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(11, 87, 208, 0.6);
 }
 
 .sign-up-link {
@@ -125,42 +162,55 @@ form {
 }
 
 .sign-up-link a {
-    color: rgba(11, 87, 208, 1);
-    font-weight: bold;
-    text-decoration: none;
-    transition: all .2s ease-in-out;
+    color: #3a8bfd;
 }
 
 .sign-up-link a:hover {
-    color: rgba(11, 87, 208, 0.8);
+    text-decoration: underline;
 }
 
 .form-error {
-    font-size: 18px;
-    color: #ff0000;
+    background: rgba(255, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    color: #ff6b6b;
+    text-align: center;
 }
 
-@media (max-width: 800px) {
-    .main-container {
-        width: 80%;
-    }
-}
-
-@media (max-width: 600px) {
-    .main-container {
-        width: 90%;
+@media (max-width: 768px) {
+    form {
+        gap: 30px;
     }
 
     .form-header h2 {
-        font-size: 36px;
+        font-size: 34px;
     }
 
-    .form-header p {
-        font-size: 14px;
+    .form-footer button {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .main-container {
+        margin: 0;
+        border-radius: 16px;
     }
 
     form {
-        gap: 20px;
+        gap: 24px;
+    }
+
+    .form-header h2 {
+        font-size: 28px;
+    }
+
+    .form-header p {
+        font-size: 13px;
     }
 
     .field-label span {
@@ -168,40 +218,41 @@ form {
     }
 
     .input-wrapper input {
+        padding: 12px 14px 12px 40px;
         font-size: 14px;
-    }
-
-    .form-footer button {
-        font-size: 16px;
-    }
-
-    .sign-up-link,
-    .form-error,
-    .checkbox-label span {
-        font-size: 14px;
-    }
-
-    .checkbox-label input {
-        width: 14px;
-        height: 14px;
-    }
-}
-
-@media (max-width: 425px) {
-    .form-header h2 {
-        font-size: 32px;
-    }
-
-    .form-header p {
-        font-size: 12px;
     }
 
     .input-wrapper svg {
         width: 16px;
         height: 16px;
+        left: 12px;
     }
 
-    .input-wrapper input {
-        padding-left: 36px;
+    .form-footer button {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .sign-up-link {
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .checkbox-label {
+        gap: 10px;
+    }
+
+    .checkbox-label span {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    .form-header h2 {
+        font-size: 24px;
+    }
+
+    .main-container {
+        padding: 18px;
     }
 }
