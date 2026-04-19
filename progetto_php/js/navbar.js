@@ -305,7 +305,7 @@ document.addEventListener("click", function (e) {
         return;
     }
 
-    const type = playBtn.dataset.type; // aggiungi data-type="song" | "album"
+    const type = playBtn.dataset.type;
     if (type === "song") {
         const song = {
             id: playBtn.dataset.id,

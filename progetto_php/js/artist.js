@@ -7,11 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function fetchArtistData(id) {
     try {
-        // Chiamata al tuo backend che contatta Deezer
         const response = await fetch(`/progetto_php/api/get_artist.php?artist_id=${id}`);
         const data = await response.json();
 
-        renderArtistHeader(data.artist);
+        // Passa anche topTracks qui!
+        renderArtistHeader(data.artist, data.topTracks); 
         renderTopTracks(data.topTracks);
         renderDiscography(data.albums);
     } catch (error) {
@@ -19,13 +19,25 @@ async function fetchArtistData(id) {
     }
 }
 
-function renderArtistHeader(artist) {
+function renderArtistHeader(artist, topTracks) {
     document.getElementById("artist-name").textContent = artist.name;
     document.getElementById("artist-stats").textContent = `${Number(artist.nb_fan).toLocaleString()} ascoltatori mensili`;
 
-    // Imposta la foto come sfondo dell'header
     const header = document.getElementById("artist-header");
     header.style.backgroundImage = `linear-gradient(transparent, rgba(18, 18, 18, 0.9)), url('${artist.picture_xl}')`;
+
+    const mainPlayBtn = document.getElementById("play-artist-main");
+    if (mainPlayBtn) {
+        // Usiamo addEventListener invece di onclick per maggiore pulizia
+        mainPlayBtn.addEventListener("click", (e) => {
+            // FONDAMENTALE: impedisce a navbar.js di sentire questo click
+            e.stopPropagation(); 
+            
+            if (topTracks && topTracks.length > 0) {
+                playArtistTopTracks(topTracks);
+            }
+        });
+    }
 }
 
 function renderTopTracks(tracks) {
@@ -147,4 +159,48 @@ function formatTime(seconds) {
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
+
+async function playArtistTopTracks(tracks) {
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    // Trasformiamo i dati di Deezer nel tuo formato standard
+    const formattedTracks = tracks.map(track => ({
+        id: track.id,
+        title: track.title,
+        artist: track.artist.name,
+        cover: track.album.cover_medium,
+        duration: track.duration
+    }));
+
+    const firstTrack = formattedTracks[0];
+    const restOfTracks = formattedTracks.slice(1);
+
+    // 1. Reset DB e aggiungi la prima traccia (endpoint add_to_queue)
+    await fetch("/progetto_php/api/add_to_queue.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `song_id=${firstTrack.id}`
+    });
+
+    // 2. Aggiungi il resto delle top 10 al DB (endpoint add_related_tracks)
+    if (restOfTracks.length > 0) {
+        await fetch("/progetto_php/api/add_related_tracks.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "tracks=" + encodeURIComponent(JSON.stringify(restOfTracks))
+        });
+    }
+
+    // 3. Sincronizza lo stato globale di navbar.js
+    queue = formattedTracks;
+    currentIndex = 0;
+
+    // 4. Avvia la UI e il Playback (funzioni in navbar.js)
+    showPlayer();
+    loadCurrentSong();
+    startPlayback();
 }

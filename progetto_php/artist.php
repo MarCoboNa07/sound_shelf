@@ -36,7 +36,7 @@ $artist_id = $_GET["artist_id"] ?? null;
 
             <div class="artist-body">
                 <div class="artist-actions">
-                    <button class="play-btn main-play" data-type="album" data-id="<?php echo $album_id; ?>">
+                    <button id="play-artist-main" class="play-btn-artist main-play" data-type="album" data-id="<?php echo $album_id; ?>">
                         <svg viewBox="0 0 16 16" width="16" height="16">
                             <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
                         </svg>
