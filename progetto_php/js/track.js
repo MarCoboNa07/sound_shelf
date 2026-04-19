@@ -30,7 +30,9 @@ function renderTrackPage(track) {
     };
 
     title.textContent = track.title;
-    setTimeout(() => fitTitleToContainer(title, 148, 24), 0);
+    setTimeout(() => {
+        fitTitleToContainer(title, 148, 24)
+    }, 0);
 
     const year = track.release_date.split("-")[0];
     meta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a> • ${year} • 1 brano, ${formatDuration(track.duration)}`;
@@ -76,4 +78,37 @@ function renderTrackPage(track) {
         </button>
     `;
     container.appendChild(trackRow);
+
+    trackRow.addEventListener("click", async (e) => {
+        // evita click sui bottoni interni
+        if (e.target.closest(".track-action-btn")) return;
+
+        if (!isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        await startQueue({
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            cover: track.cover,
+            duration: track.duration
+        });
+    });
+
+    document.querySelector(".main-play").addEventListener("click", async () => {
+        if (!isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        await startQueue({
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            cover: track.cover,
+            duration: track.duration
+        });
+    });
 }

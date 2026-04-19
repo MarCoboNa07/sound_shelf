@@ -28,12 +28,16 @@ prevBtn.addEventListener("click", prevSong);
 function showPlayer() {
     document.querySelector(".player").classList.add("active-player");
     document.body.classList.add("player-open");
+
+    setTimeout(resizeAlbumTitle, 310);
 }
 
 // funzioner per nascondere il player
 function hidePlayer() {
     document.querySelector(".player").classList.remove("active-player");
     document.body.classList.remove("player-open");
+
+    setTimeout(resizeAlbumTitle, 310);
 }
 
 // funzione per inizializzare la progress bar (time line)
@@ -179,5 +183,15 @@ async function prevSong() {
     } else {
         currentTime = 0;
         updateProgressUI();
+    }
+}
+
+function resizeAlbumTitle() {
+    const title =
+        document.querySelector("#album-title") ||
+        document.querySelector("#track-title");
+
+    if (title) {
+        fitTitleToContainer(title, 148, 24);
     }
 }

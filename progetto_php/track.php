@@ -71,8 +71,8 @@ $track_id = $_GET["track_id"] ?? null;
     <?php include "./components/player.php"; ?>
 
     <script src="./js/script.js"></script>
-    <script src="./js/track.js"></script>
     <script src="./js/album.js"></script>
+    <script src="./js/track.js"></script>
     <script src="./js/navbar.js"></script>
     <script src="./js/player.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>

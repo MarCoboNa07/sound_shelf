@@ -92,29 +92,33 @@ function renderAlbumPage(data) {
         `;
 
         tracksContainer.appendChild(trackRow);
+
+        trackRow.addEventListener("click", async (e) => {
+            if (e.target.closest(".track-action-btn")) return;
+
+            if (!isLogged) {
+                window.location.href = "/progetto_php/login.php";
+                return;
+            }
+
+            const song = {
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                cover: track.cover,
+                duration: parseInt(track.duration)
+            };
+
+            await startQueue(song);
+        });
     });
-}
 
-function fitTitleToContainer(element, maxSize = 148, minSize = 24) {
-    let size = maxSize;
+    document.querySelector(".main-play").addEventListener("click", async (e) => {
+        const albumId = e.currentTarget.dataset.id;
 
-    element.style.whiteSpace = "nowrap";
-    element.style.display = "inline-block";
-
-    const parent = element.parentElement;
-
-    while (size > minSize) {
-        element.style.fontSize = size + "px";
-
-        const isOverflowing =
-            element.scrollWidth > parent.clientWidth;
-
-        if (!isOverflowing) break;
-
-        size -= 2;
-    }
-
-    element.style.fontSize = size + "px";
+        if (!albumId) return;
+        await startAlbumQueue(albumId);
+    });
 }
 
 function applyAlbumGradient([r, g, b]) {

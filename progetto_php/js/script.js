@@ -37,6 +37,28 @@ async function loadQueueFromDB() {
     loadCurrentSong();
 }
 
+function fitTitleToContainer(element, maxSize = 148, minSize = 24) {
+    let size = maxSize;
+
+    element.style.whiteSpace = "nowrap";
+    element.style.display = "inline-block";
+
+    const parent = element.parentElement;
+
+    while (size > minSize) {
+        element.style.fontSize = size + "px";
+
+        const isOverflowing =
+            element.scrollWidth > parent.clientWidth;
+
+        if (!isOverflowing) break;
+
+        size -= 2;
+    }
+
+    element.style.fontSize = size + "px";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     await checkSession();
     toggleMobileMenu();
