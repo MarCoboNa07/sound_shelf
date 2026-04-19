@@ -330,3 +330,12 @@ document.addEventListener("click", function (e) {
         resultsBox.classList.add("hidden-results");
     }
 });
+
+document.addEventListener("click", async function (e) {
+    const playBtn = e.target.closest(".play-btn");
+    if (!playBtn) return;
+
+    // 🔥 BLOCCA navigazione dell'<a> genitore
+    e.preventDefault();
+    e.stopPropagation();
+});
