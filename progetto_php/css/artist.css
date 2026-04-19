@@ -28,7 +28,8 @@
 }
 
 #artist-name {
-    font-size: clamp(48px, 8vw, 96px); /* Testo che si adatta allo schermo */
+    font-size: clamp(48px, 8vw, 96px);
+    /* Testo che si adatta allo schermo */
     font-weight: 900;
     margin: 0 0 10px 0;
     letter-spacing: -2px;
@@ -192,7 +193,7 @@
 .cover-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -331,7 +332,7 @@
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 4px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     margin-bottom: 16px;
 }
 
@@ -340,9 +341,14 @@
     font-weight: 700;
     display: block;
     margin-bottom: 4px;
+    text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.trending-title:hover {
+    text-decoration: underline;
 }
 
 .trending-artist {
@@ -350,11 +356,64 @@
     font-size: 14px;
 }
 
+/* WRAPPER (già ce l’hai, ma lo miglioriamo) */
+.trending-cover-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+/* PLAY BUTTON */
+.trending-play {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1db954;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.25s ease;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ICONA */
+.trending-play svg {
+    width: 22px;
+    height: 22px;
+    fill: black;
+}
+
+/* HOVER CARD → appare */
+.trending-card:hover .trending-play {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* HOVER SUL BOTTONE */
+.trending-play:hover {
+    transform: scale(1.08);
+    background: #1ed760;
+}
+
+/* CLICK EFFECT */
+.trending-play:active {
+    transform: scale(0.95);
+}
+
 /* Opzionale: nascondi la colonna ascolti su schermi molto piccoli */
 @media (max-width: 768px) {
     .track-row {
         grid-template-columns: 16px 40px 1fr 40px 60px 40px;
     }
+
     .track-rank {
         display: none;
     }

@@ -49,6 +49,17 @@ usort($albums, function($a, $b) {
 
 foreach ($albums as &$album) {
     $album['cover_best'] = getHighRes($album['cover_xl'] ?? $album['cover']);
+
+    // Se è un singolo → recupera la prima traccia
+    if (($album['record_type'] ?? '') === 'single') {
+        $tracksData = fetchDeezer("album/" . $album['id'] . "/tracks");
+
+        if (!empty($tracksData['data'][0])) {
+            $album['track_id'] = $tracksData['data'][0]['id'];
+        } else {
+            $album['track_id'] = null;
+        }
+    }
 }
 
 echo json_encode([

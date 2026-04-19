@@ -33,7 +33,7 @@ function renderTrackPage(track) {
     setTimeout(() => fitTitleToContainer(title, 148, 24), 0);
 
     const year = track.release_date.split("-")[0];
-    meta.innerHTML = `<a href="#" class="artist-link">${track.artist}</a> • ${year} • 1 brano, ${formatDuration(track.duration)}`;
+    meta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a> • ${year} • 1 brano, ${formatDuration(track.duration)}`;
 
     // 2. Render riga singola (Stesso stile dell'album)
     container.innerHTML = "";

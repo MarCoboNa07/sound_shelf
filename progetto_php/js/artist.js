@@ -87,17 +87,51 @@ function renderTopTracks(tracks) {
 
 function renderDiscography(albums) {
     const container = document.getElementById("artist-albums-container");
-    container.innerHTML = albums.map(album => `
-        <a href="/progetto_php/album.php?album_id=${album.id}" class="trending-card">
+    container.innerHTML = "";
+
+    albums.forEach(item => {
+        const isSingle = item.record_type === "single";
+
+        const link = isSingle
+            ? `/progetto_php/track.php?track_id=${item.track_id}`
+            : `/progetto_php/album.php?album_id=${item.id}`;
+
+        const card = document.createElement("a");
+        card.classList.add("trending-card");
+        card.href = link;
+
+        const playButton = `
+            <div class="trending-play play-btn"
+                data-type="${isSingle ? "song" : "album"}"
+                data-id="${isSingle ? item.track_id : item.id}">
+                <svg viewBox="0 0 16 16" width="16" height="16">
+                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                </svg>
+            </div>
+        `;
+
+        card.innerHTML = `
             <div class="trending-cover-wrapper">
-                <img src="${album.cover_xl}" alt="${album.title}">
+                <img src="${item.cover_xl}" alt="${item.title}">
+                ${playButton}
             </div>
             <div class="trending-info">
-                <span class="trending-title">${album.title}</span>
-                <span class="trending-artist">${new Date(album.release_date).getFullYear()} • Album</span>
+                <a href="${link}" class="trending-title">${item.title}</a>
+                <span class="trending-artist">
+                    ${new Date(item.release_date).getFullYear()} • ${isSingle ? "Singolo" : "Album"}
+                </span>
             </div>
-        </a>
-    `).join("");
+        `;
+
+        // blocca click su play
+        const playBtn = card.querySelector(".play-btn");
+        playBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        container.appendChild(card);
+    });
 }
 
 function formatTime(seconds) {
