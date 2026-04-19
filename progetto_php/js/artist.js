@@ -42,9 +42,19 @@ function renderTopTracks(tracks) {
         trackRow.innerHTML = `
             <div class="track-number">
                 <span class="track-index">${index + 1}</span>
-                <svg class="track-hover-play" viewBox="0 0 16 16" width="16" height="16">
-                    <path fill="currentColor" d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                </svg>
+                <div 
+                    class="track-hover-play play-btn"
+                    data-type="song"
+                    data-id="${track.id}"
+                    data-title="${track.title}"
+                    data-artist="${track.artist.name}"
+                    data-cover="${track.album.cover_medium}"
+                    data-duration="${track.duration}"
+                >                
+                    <svg class="track-hover-play" viewBox="0 0 16 16" width="16" height="16">
+                        <path fill="currentColor" d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                    </svg>
+                </div>
             </div>
 
             <img src="${track.album.cover_small}" class="track-img" alt="">
@@ -127,7 +137,6 @@ function renderDiscography(albums) {
         const playBtn = card.querySelector(".play-btn");
         playBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            e.stopPropagation();
         });
 
         container.appendChild(card);
