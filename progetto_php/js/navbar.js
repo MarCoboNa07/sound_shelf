@@ -294,6 +294,49 @@ function startPlayback() {
     }, 1000);
 }
 
+async function startArtistQueue(artistId) {
+    const res = await fetch(`/progetto_php/api/get_artist.php?artist_id=${artistId}`);
+    const data = await res.json();
+
+    const tracks = data.topTracks || [];
+    if (!tracks.length) return;
+
+    const formattedTracks = tracks.map(track => ({
+        id: track.id,
+        title: track.title,
+        artist: track.artist.name,
+        cover: track.album.cover_medium,
+        duration: track.duration
+    }));
+
+    const firstTrack = formattedTracks[0];
+    const rest = formattedTracks.slice(1);
+
+    // 1. reset DB
+    await fetch("/progetto_php/api/add_to_queue.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `song_id=${firstTrack.id}`
+    });
+
+    // 2. resto coda
+    if (rest.length > 0) {
+        await fetch("/progetto_php/api/add_related_tracks.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "tracks=" + encodeURIComponent(JSON.stringify(rest))
+        });
+    }
+
+    // 3. sync player globale
+    queue = formattedTracks;
+    currentIndex = 0;
+
+    showPlayer();
+    loadCurrentSong();
+    startPlayback();
+}
+
 // funzione per riprodurre il brano al click del pulsante play
 document.addEventListener("click", function (e) {
     const playBtn = e.target.closest(".play-btn");
@@ -335,7 +378,33 @@ document.addEventListener("click", async function (e) {
     const playBtn = e.target.closest(".play-btn");
     if (!playBtn) return;
 
-    // 🔥 BLOCCA navigazione dell'<a> genitore
     e.preventDefault();
     e.stopPropagation();
+
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    const type = playBtn.dataset.type;
+
+    if (type === "song") {
+        const song = {
+            id: playBtn.dataset.id,
+            title: playBtn.dataset.title,
+            artist: playBtn.dataset.artist,
+            cover: playBtn.dataset.cover,
+            duration: parseInt(playBtn.dataset.duration)
+        };
+        startQueue(song);
+    }
+
+    else if (type === "album") {
+        startAlbumQueue(playBtn.dataset.id);
+    }
+
+    // 🔥 NUOVO: ARTIST
+    else if (type === "artist") {
+        startArtistQueue(playBtn.dataset.id);
+    }
 });
