@@ -1,46 +1,46 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const genreId = document.body.dataset.genreId;
-    if (!genreId) {
-        console.error("No genre id");
-        return;
-    }
-    console.log("Chiamo API per genre_id:", genreId);
+// js/genre.js
+
+async function loadGenreData() {
     try {
+        const genreId = document.body.dataset.genreId;
+
         const response = await fetch(`/progetto_php/api/get_genre_data.php?genre_id=${genreId}`);
         const data = await response.json();
 
-        console.log("Risposta API:", data);
+        // Banner
+        renderGenreBanner(data);
 
-        if (data.error) {
-            document.getElementById("genre-title").textContent = "Errore nel caricamento del genere";
-            return;
-        }
+        // Riusa le stesse funzioni della home
+        renderTrendingSongs(data.tracks || []);
+        renderTrendingArtists(data.artists || []);
+        renderTrendingAlbums(data.albums || []);
 
-        // Mostra il nome del genere
-        document.getElementById("genre-title").textContent = data.genre_name;
+        // Inizializza caroselli
+        initTrendingCarousel("songs");
+        initTrendingCarousel("artists");
+        initTrendingCarousel("albums");
 
-        const container = document.getElementById("genre-content");
-        container.innerHTML = `
-            <h2>Artisti</h2>
-            <ul>
-                ${data.artists.map(artist => `<li>${artist.name}</li>`).join('')}
-            </ul>
-            <h2>Album</h2>
-            <div class="albums">
-                ${data.albums.map(album => `
-                    <div class="album-card">
-                        <img src="${album.cover}" alt="${album.title}">
-                        <p>${album.title} - ${album.artist}</p>
-                    </div>
-                `).join('')}
-            </div>
-            <h2>Tracce Popolari</h2>
-            <ul>
-                ${data.tracks.map(track => `<li>${track.title}</li>`).join('')}
-            </ul>
-        `;
-
-    } catch (error) {
-        console.error("Errore nel caricamento del genere:", error);
+    } catch (err) {
+        console.error(err);
     }
+}
+
+// Banner del genere
+function renderGenreBanner(data) {
+    const banner = document.querySelector("#genre-banner");
+
+    banner.innerHTML = `
+        <div class="genre-banner-content">
+            <img src="${data.genre_picture}" alt="${data.genre_name}">
+            <h1>${data.genre_name}</h1>
+        </div>
+    `;
+}
+
+// IMPORTANTE: queste funzioni NON le riscrivi
+// 👉 includi home.js anche in genre.php
+// oppure copiale identiche
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadGenreData();
 });

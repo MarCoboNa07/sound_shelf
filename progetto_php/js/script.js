@@ -59,6 +59,29 @@ function fitTitleToContainer(element, maxSize = 148, minSize = 24) {
     element.style.fontSize = size + "px";
 }
 
+// script.js (o il tuo file JS globale)
+function initCarousel(sectionId, type) {
+    const carousel = document.querySelector(`#${sectionId} .trending-carousel`);
+    const nextBtn = document.querySelector(`#${sectionId} .next-${type}`);
+    const prevBtn = document.querySelector(`#${sectionId} .prev-${type}`);
+
+    if (!carousel || !nextBtn || !prevBtn) return;
+
+    nextBtn.addEventListener("click", () => {
+        const card = carousel.querySelector(".trending-card");
+        if (!card) return;
+        const scrollAmount = card.offsetWidth + 18;
+        carousel.scrollBy({ left: scrollAmount * 3, behavior: "smooth" });
+    });
+
+    prevBtn.addEventListener("click", () => {
+        const card = carousel.querySelector(".trending-card");
+        if (!card) return;
+        const scrollAmount = card.offsetWidth + 18;
+        carousel.scrollBy({ left: -scrollAmount * 3, behavior: "smooth" });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     await checkSession();
     toggleMobileMenu();

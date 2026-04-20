@@ -1,52 +1,83 @@
+/* container principale */
 .content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding: 32px;
-    background: #282828;
-    border-radius: 12px 12px 0 0;
+    gap: 24px;
+    padding: 40px 32px;
+    background: #1f1f1f;
+    border-radius: 16px 16px 0 0;
 }
 
+/* titolo */
 .content h1 {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 34px;
+    font-weight: 800;
     color: #fff;
+    letter-spacing: -0.5px;
 }
 
+/* grid più moderna */
 .genres-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
 }
 
+/* CARD MIGLIORATA */
 .genre-card {
     position: relative;
-    height: 120px;
+    height: 140px;
     padding: 16px;
     text-decoration: none;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform .2s;
+    transition: transform .25s ease, box-shadow .25s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
+/* hover più "premium" */
 .genre-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
 }
 
+/* gradient overlay per leggibilità */
+.genre-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.2),
+        rgba(0,0,0,0.6)
+    );
+    z-index: 1;
+}
+
+/* nome genere */
 .genre-name {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800;
     color: #fff;
     position: relative;
     z-index: 2;
 }
 
+/* immagine più integrata */
 .genre-image {
     position: absolute;
-    bottom: -10px;
+    bottom: -8px;
     right: -10px;
-    width: 90px;
-    transform: rotate(25deg);
-    box-shadow: 0 4px 10px rgba(0,0,0,.4);
+    width: 100px;
+    transform: rotate(18deg);
+    opacity: 0.95;
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+}
+
+/* effetto glow leggero sul colore */
+.genre-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(4px);
 }

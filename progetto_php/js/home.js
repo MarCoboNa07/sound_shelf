@@ -4,18 +4,17 @@
 // funzione per caricare i dati musicali di tendenza
 async function loadTrending() {
     try {
-        const response = await fetch("/progetto_php/api/get_trending_data.php"); // richiesta all'api php per ottenere i dati di tendenza
+        const response = await fetch("/progetto_php/api/get_trending_data.php");
         const data = await response.json();
 
-        // renderizza i dati sulla pagina
         renderTrendingSongs(data.tracks || []);
         renderTrendingArtists(data.artists || []);
         renderTrendingAlbums(data.albums || []);
 
-        // inizializza i caroselli
-        initTrendingCarousel("songs");
-        initTrendingCarousel("artists");
-        initTrendingCarousel("albums");
+        // Chiama initCarousel con gli id delle sezioni
+        initCarousel("trending-carousel-songs", "songs");
+        initCarousel("trending-carousel-artists", "artists");
+        initCarousel("trending-carousel-albums", "albums");
     } catch (err) {
         console.error(err);
     }
@@ -196,5 +195,8 @@ function initTrendingCarousel(type) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadTrending();
+    // Se NON siamo nella pagina genre, carica trending
+    if (!document.body.dataset.genreId) {
+        loadTrending();
+    }
 });

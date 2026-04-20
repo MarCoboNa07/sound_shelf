@@ -78,7 +78,6 @@ $current_page = basename($_SERVER["PHP_SELF"]);
                     </div>
                     <div class="trending-carousel" id="trending-carousel-albums"></div>
                 </div>
-
             </div>
 
             <?php if (isset($_SESSION["username"])): ?>

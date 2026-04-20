@@ -1,0 +1,19 @@
+.genre-banner {
+    display: flex;
+    align-items: center;
+    padding: 40px 32px;
+    gap: 20px;
+    color: white;
+}
+
+.genre-banner img {
+    width: 180px;
+    height: 180px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.genre-banner h1 {
+    font-size: 48px;
+    font-weight: bold;
+}
