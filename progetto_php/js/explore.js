@@ -47,14 +47,17 @@ async function getGenres() {
         }
 
         // ciclo foreach per scorrere l'array dei generi
+        // ciclo foreach per scorrere l'array dei generi
         genres.forEach(genre => {
-            const card = document.createElement("div");
-            card.classList.add("genre-card");
+            const link = document.createElement("a");
+            link.classList.add("genre-card");
+            // Imposta l'href alla pagina del genere, ad esempio: genre.php?genre_id=ID
+            link.href = `genre.php?genre_id=${genre.id}`;
 
             const genreName = genre.name.toLowerCase().trim();
             const color = genreColors[genreName] || genreColors["default"] || "#444444"; // assegna il colore al genere
 
-            card.style.backgroundColor = color;
+            link.style.backgroundColor = color;
 
             const title = document.createElement("div");
             title.classList.add("genre-name");
@@ -65,9 +68,10 @@ async function getGenres() {
             img.src = genre.picture;
             img.alt = genre.name;
 
-            card.appendChild(title);
-            card.appendChild(img);
-            genresContainer.appendChild(card);
+            link.appendChild(title);
+            link.appendChild(img);
+
+            genresContainer.appendChild(link);
         });
     } catch (error) {
         console.error("Errore nel caricamento dei generi:", error);
