@@ -93,12 +93,18 @@ function updateProgressUI() {
     const dot = document.querySelector("#progress-dot");
     const currentTimeEl = document.querySelector("#current-time");
     const totalTimeEl = document.querySelector("#total-time");
+    const mobileProgress = document.querySelector("#mobile-progress");
 
-    const percent = totalDuration ? (currentTime / totalDuration) * 100 : 0; // calcola la percentuale
+    const percent = totalDuration ? (currentTime / totalDuration) * 100 : 0;
 
-    // aggiorna la barra sull'interfaccia
+    // calcola la percentuale desktop
     progress.style.width = percent + "%";
     dot.style.left = percent + "%";
+
+    // calcola la percentuale mobile👇
+    if (mobileProgress) {
+        mobileProgress.style.width = percent + "%";
+    }
 
     // formatta il nuovo intervallo di tempo in minuti e secondi
     currentTimeEl.textContent = formatDuration(currentTime);
