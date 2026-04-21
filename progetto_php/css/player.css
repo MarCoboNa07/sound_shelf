@@ -1,3 +1,26 @@
+body.player-open .top-container {
+    width: calc(100% - 25% - 16px);
+    margin-right: 16px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+body.player-open .main-content {
+    margin-right: 25%;
+}
+
+.top-container {
+    position: relative;
+    width: 100%;
+    margin-right: 0;
+    overflow: hidden;
+    transition: width 0.3s ease, margin 0.3s ease;
+}
+
+.main-content {
+    width: 100%;
+}
+
 .player {
     position: fixed;
     top: 0;
@@ -187,37 +210,16 @@
     text-align: center;
 }
 
-.top-container {
-    position: relative;
-    width: 100%;
-    margin-right: 0;
-    overflow: hidden;
-    transition: width 0.3s ease, margin 0.3s ease;
-}
-
-body.player-open .top-container {
-    width: calc(100% - 25% - 16px);
-    margin-right: 16px;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-}
-
-.main-content {
-    width: 100%;
-}
-
-body.player-open .main-content {
-    margin-right: 25%;
-}
-
 @media (max-width: 768px) {
     body {
-        padding-bottom: 90px;
+        padding-bottom: 80px;
     }
 
     body.player-open .top-container {
         width: 100%;
         margin-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
     }
 
     body.player-open .main-content {

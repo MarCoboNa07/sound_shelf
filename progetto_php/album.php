@@ -1,6 +1,6 @@
 <?php
 session_start();
-$album_id = $_GET["album_id"] ?? null; // 54852172
+$album_id = $_GET["album_id"] ?? null;
 ?>
 
 <!DOCTYPE html>

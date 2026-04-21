@@ -2,7 +2,6 @@
     border-radius: 12px;
 }
 
-/* HEADER */
 .album-header {
     display: flex;
     align-items: flex-end;
@@ -54,7 +53,6 @@
     font-size: 14px;
 }
 
-/* PLAY BUTTON */
 .album-actions {
     display: flex;
     align-items: center;
@@ -110,12 +108,10 @@
     margin: 8px 0;
 }
 
-/* TRACKLIST */
 .tracklist {
     padding: 20px 40px 60px 40px;
 }
 
-/* Struttura uniforme per Header e Righe */
 .tracklist-header,
 .track-row {
     display: grid;
@@ -136,7 +132,6 @@
     text-align: center;
 }
 
-/* Allineamento specifico per l'intestazione nell'header */
 .col-duration {
     grid-column: 5;
     text-align: center;
@@ -172,13 +167,11 @@
     opacity: 1;
 }
 
-/* HEADER */
 .tracklist-header {
     color: #c2c2c2;
     font-size: 14px;
 }
 
-/* RIGHE */
 .track-row {
     padding: 10px 20px 10px 0;
     border-radius: 6px;
@@ -200,7 +193,6 @@
     text-decoration: underline;
 }
 
-/* NUMERO */
 .track-number {
     position: relative;
     text-align: center;
@@ -225,7 +217,6 @@
     opacity: 1;
 }
 
-/* INFO */
 .track-main-info {
     display: flex;
     align-items: center;
@@ -251,7 +242,6 @@
     color: #c2c2c2;
 }
 
-/* ACTIONS */
 .track-actions {
     display: flex;
     align-items: center;
@@ -260,7 +250,6 @@
     padding-right: 12px;
 }
 
-/* icone */
 .track-action-btn {
     background: transparent;
     border: none;
@@ -270,21 +259,131 @@
     transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-/* appaiono su hover riga */
 .track-row:hover .track-action-btn {
     opacity: 1;
 }
 
-/* hover → bianco */
 .track-action-btn:hover {
     color: #ffffff;
 }
 
-/* IMPORTANTISSIMO per SVG */
 .track-action-btn svg {
     fill: currentColor;
 }
 
 .track-row:hover .play-btn {
     opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .album-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        gap: 16px;
+    }
+
+    #album-cover {
+        width: 160px;
+        height: 160px;
+    }
+
+    .album-info {
+        width: 100%;
+        align-items: flex-start;   
+        text-align: left;         
+        padding: 0 4px;       
+    }
+
+    #album-title {
+        font-size: 28px;
+        letter-spacing: 0;
+        white-space: normal;
+        text-align: left;
+    }
+
+    #album-meta {
+        font-size: 12px;
+    }
+
+    .album-type {
+        font-size: 12px;
+    }
+
+    .album-actions {
+        justify-content: flex-start;
+        padding: 10px 20px;
+        gap: 16px;
+    }
+
+    .main-play {
+        width: 48px;
+        height: 48px;
+    }
+
+    .main-play svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .album-action-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .tracklist {
+        padding: 10px 16px 80px 16px;
+    }
+
+    .track-row {
+        grid-template-columns: 1fr auto auto;
+        padding: 12px 0;
+    }
+
+    .tracklist-header,
+    .divider,
+    .track-number,
+    .track-duration,
+    .track-rank,
+    .col-rank {
+        display: none;
+    }
+
+    .track-main-info {
+        grid-column: 1;
+    }
+
+    .track-title-wrapper {
+        gap: 2px;
+    }
+
+    .track-title {
+        font-size: 14px;
+    }
+
+    .track-artist {
+        font-size: 11px;
+    }
+
+    .track-row {
+        border-radius: 8px;
+    }
+
+    .track-row:active {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .track-action-btn {
+        opacity: 1;
+    }
+
+    .track-action-btn.add-playlist-btn {
+        grid-column: 2;
+        margin-right: 16px;
+    }
+
+    .track-action-btn.more-btn {
+        grid-column: 3;
+    }
 }

@@ -17,7 +17,6 @@
     z-index: 2;
 }
 
-/* sezione contenuti in tendenza */
 .trending-container {
     padding-bottom: 32px;
 }
@@ -164,4 +163,68 @@
     width: 20px;
     height: 20px;
     fill: black;
+}
+
+@media (max-width: 768px) {
+    .trending-section {
+        padding: 16px;
+    }
+
+    .section-header h2 {
+        font-size: 18px;
+    }
+
+    .carousel-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .carousel-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    .trending-carousel {
+        gap: 14px;
+    }
+
+    .trending-card {
+        width: 140px;
+        padding: 12px;
+    }
+
+    .trending-title {
+        font-size: 14px;
+    }
+
+    .trending-artist,
+    .trending-artist-label {
+        font-size: 12px;
+    }
+
+    .trending-play {
+        width: 36px;
+        height: 36px;
+        bottom: 8px;
+        right: 8px;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .trending-play svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .trending-card.artist img {
+        border-radius: 50%;
+    }
+
+    .trending-carousel {
+        scroll-snap-type: x mandatory;
+    }
+
+    .trending-card {
+        scroll-snap-align: start;
+    }
+
 }

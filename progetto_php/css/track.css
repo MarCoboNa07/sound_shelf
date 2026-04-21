@@ -28,3 +28,21 @@
     color: #c2c2c2;
     font-size: 14px;
 }
+
+@media (max-width: 768px) {
+    #track-title {
+        font-size: 28px !important;
+        white-space: normal;
+        letter-spacing: 0;
+        text-align: left;
+    }
+
+    .album-info {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    #track-meta {
+        text-align: left;
+    }
+}

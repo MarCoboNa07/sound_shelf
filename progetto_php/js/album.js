@@ -40,7 +40,11 @@ function renderAlbumPage(data) {
     const trackCount = tracks.length;
 
     setTimeout(() => {
-        fitTitleToContainer(albumTitle, 148, 24);
+        if (window.innerWidth > 768) {
+            fitTitleToContainer(albumTitle, 148, 24);
+        } else {
+            albumTitle.style.fontSize = "28px";
+        }
     }, 0);
 
     const totalSeconds = tracks.reduce((sum, track) => {

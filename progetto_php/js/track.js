@@ -30,9 +30,15 @@ function renderTrackPage(track) {
     };
 
     title.textContent = track.title;
-    setTimeout(() => {
-        fitTitleToContainer(title, 148, 24)
-    }, 0);
+    window.addEventListener("resize", () => {
+        const isMobile = window.innerWidth <= 768;
+
+        if (!isMobile) {
+            fitTitleToContainer(title, 148, 24);
+        } else {
+            title.style.fontSize = "28px";
+        }
+    });
 
     const year = track.release_date.split("-")[0];
     meta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a> • ${year} • 1 brano, ${formatDuration(track.duration)}`;
