@@ -79,10 +79,6 @@ $current_page = basename($_SERVER["PHP_SELF"]);
                     <div class="trending-carousel" id="trending-carousel-albums"></div>
                 </div>
             </div>
-
-            <?php if (isset($_SESSION["username"])): ?>
-                <a href="./api/logout.php">Logout</a>
-            <?php endif; ?>
         </div>
 
     </div>
