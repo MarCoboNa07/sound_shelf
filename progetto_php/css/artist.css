@@ -1,4 +1,3 @@
-/* 1. Header Artista con Immagine e Gradiente */
 .artist-header {
     position: relative;
     display: flex;
@@ -29,7 +28,6 @@
 
 #artist-name {
     font-size: clamp(48px, 8vw, 96px);
-    /* Testo che si adatta allo schermo */
     font-weight: 900;
     margin: 0 0 10px 0;
     letter-spacing: -2px;
@@ -40,7 +38,6 @@
     font-weight: 500;
 }
 
-/* 2. Barra Azioni (Play, Follow, More) */
 .artist-body {
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, #121212 20%);
     padding: 24px 32px;
@@ -53,7 +50,6 @@
     margin-bottom: 30px;
 }
 
-/* PLAY BUTTON */
 .album-actions {
     display: flex;
     align-items: center;
@@ -119,7 +115,6 @@
     height: 28px;
 }
 
-/* 3. Sezione Popolari (Tabella Tracce) */
 .artist-section {
     margin-bottom: 40px;
 }
@@ -144,7 +139,6 @@
     color: #fff;
 }
 
-/* NUMERO */
 .track-number {
     position: relative;
     text-align: center;
@@ -207,7 +201,6 @@
     height: 18px;
 }
 
-/* INFO */
 .track-main-info {
     display: flex;
     align-items: center;
@@ -265,7 +258,6 @@
     font-size: 14px;
 }
 
-/* ACTIONS */
 .track-actions {
     display: flex;
     align-items: center;
@@ -274,7 +266,6 @@
     padding-right: 12px;
 }
 
-/* icone */
 .track-action-btn {
     background: transparent;
     border: none;
@@ -284,17 +275,14 @@
     transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-/* appaiono su hover riga */
 .track-row:hover .track-action-btn {
     opacity: 1;
 }
 
-/* hover → bianco */
 .track-action-btn:hover {
     color: #ffffff;
 }
 
-/* IMPORTANTISSIMO per SVG */
 .track-action-btn svg {
     fill: currentColor;
 }
@@ -307,14 +295,12 @@
     opacity: 1;
 }
 
-/* 4. Discografia Grid */
 .discography-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 24px;
 }
 
-/* Riutilizzo/Adattamento della trending-card della home */
 .trending-card {
     background: #181818;
     padding: 16px;
@@ -356,14 +342,12 @@
     font-size: 14px;
 }
 
-/* WRAPPER (già ce l’hai, ma lo miglioriamo) */
 .trending-cover-wrapper {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
 }
 
-/* PLAY BUTTON */
 .trending-play {
     position: absolute;
     bottom: 10px;
@@ -372,49 +356,84 @@
     height: 48px;
     border-radius: 50%;
     background: #1db954;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     opacity: 0;
     transform: translateY(10px) scale(0.95);
     transition: all 0.25s ease;
-
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* ICONA */
 .trending-play svg {
     width: 22px;
     height: 22px;
     fill: black;
 }
 
-/* HOVER CARD → appare */
 .trending-card:hover .trending-play {
     opacity: 1;
     transform: translateY(0) scale(1);
 }
 
-/* HOVER SUL BOTTONE */
 .trending-play:hover {
     transform: scale(1.08);
     background: #1ed760;
 }
 
-/* CLICK EFFECT */
 .trending-play:active {
     transform: scale(0.95);
 }
 
-/* Opzionale: nascondi la colonna ascolti su schermi molto piccoli */
 @media (max-width: 768px) {
-    .track-row {
-        grid-template-columns: 16px 40px 1fr 40px 60px 40px;
+    .artist-body {
+        padding: 16px;
     }
 
-    .track-rank {
+    .artist-actions {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .track-row {
+        grid-template-columns: 40px 1fr auto auto auto;
+        padding: 10px 0;
+        align-items: center;
+    }
+
+    .track-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+    }
+
+    .track-main-info {
+        min-width: 0;
+    }
+
+    .track-title-wrapper {
+        margin-left: 12px;
+    }
+
+    .track-title {
+        font-size: 14px;
+    }
+
+    .track-artist {
+        font-size: 12px;
+    }
+
+    .track-number,
+    .track-rank,
+    .track-duration {
         display: none;
+    }
+
+    .track-action-btn {
+        opacity: 1;
+    }
+
+    .track-action-btn.add-playlist-btn {
+        margin-right: 16px;
     }
 }

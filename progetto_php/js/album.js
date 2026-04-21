@@ -161,6 +161,5 @@ function applyAlbumGradient([r, g, b]) {
 
 function formatPlays(num) {
     if (!num) return "—";
-
     return num.toLocaleString("it-IT");
 }

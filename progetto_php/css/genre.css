@@ -17,3 +17,23 @@
     font-size: 48px;
     font-weight: bold;
 }
+
+@media (max-width: 768px) {
+    .genre-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 20px 16px;
+        gap: 12px;
+    }
+
+    .genre-banner img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .genre-banner h1 {
+        font-size: 28px;
+        letter-spacing: -0.5px;
+    }
+}

@@ -27,7 +27,7 @@ $track_id = $_GET["track_id"] ?? null;
                     <img id="track-cover" class="album-cover" src="" alt="Cover">
                     <div class="album-info">
                         <span class="album-type">Singolo</span>
-                        <h1 id="track-title">Caricamento...</h1>
+                        <h1 id="track-title" class="track-title">Caricamento...</h1>
                         <p id="track-meta" class="album-meta"></p>
                     </div>
                 </header>
