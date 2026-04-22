@@ -100,7 +100,7 @@ async function loadPlaylists() {
             return;
         }
 
-        data.playlists.forEach(p => addPlaylistToUI(p));
+        data.playlists.forEach(p => rednerPlaylist(p));
 
     } catch (err) {
         console.error(err);
@@ -108,11 +108,12 @@ async function loadPlaylists() {
     }
 }
 
-function addPlaylistToUI(playlist) {
+function rednerPlaylist(playlist) {
     const container = document.getElementById("playlist-list");
 
-    const card = document.createElement("div");
+    const card = document.createElement("a"); // 🔥 cambia da div a <a>
     card.className = "playlist-card";
+    card.href = `/progetto_php/playlist.php?playlist_id=${playlist.id}`;
 
     card.innerHTML = `
         <div class="playlist-cover">

@@ -36,13 +36,14 @@
 }
 
 .playlist-card {
-    background: #181818;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
     display: flex;
     flex-direction: column;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    background: #181818;
+    transition: 0.2s;
+    cursor: pointer;
 }
 
 .playlist-card:hover {
@@ -78,6 +79,7 @@
 }
 
 .playlist-name {
+    color: #ffffff;
     font-weight: bold;
 }
 

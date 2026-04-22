@@ -120,3 +120,93 @@ function renderTrackPage(track) {
         });
     });
 }
+
+async function openPlaylistModal(songId) {
+    const modal = document.getElementById("playlist-select-modal");
+    const container = document.getElementById("playlist-select-list");
+
+    modal.classList.remove("hidden");
+    container.innerHTML = "Caricamento...";
+
+    try {
+        const res = await fetch(`/progetto_php/api/get_user_playlists_with_track.php?song_id=${songId}`);
+        const data = await res.json();
+
+        container.innerHTML = "";
+
+        data.playlists.forEach(p => {
+            const item = document.createElement("div");
+            item.className = "playlist-select-item";
+            item.textContent = p.name;
+
+            if (p.contains == 1) {
+                item.classList.add("disabled");
+            } else {
+                item.addEventListener("click", async () => {
+                    await addToPlaylist(songId, p.id);
+                    modal.classList.add("hidden");
+                });
+            }
+
+            container.appendChild(item);
+        });
+
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = "Errore";
+    }
+}
+
+async function addToPlaylist(songId, playlistId) {
+    const res = await fetch("/progetto_php/api/add_to_playlist.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `song_id=${songId}&playlist_id=${playlistId}`
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+        alert(data.error);
+    }
+}
+
+document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".add-playlist-btn, .add-to-playlist-main");
+    if (!btn) return;
+    e.stopPropagation();
+
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    const trackId = document.body.dataset.trackId;
+    openPlaylistModal(trackId);
+});
+
+document.addEventListener("click", (e) => {
+    const modal = document.getElementById("playlist-select-modal");
+    if (!modal || modal.classList.contains("hidden")) return;
+
+    if (e.target === modal) {
+        modal.classList.add("hidden");
+    }
+});
+
+document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".add-playlist-btn");
+    if (!btn) return;
+
+    e.stopPropagation();
+
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    const songId = btn.dataset.id;
+    openPlaylistModal(songId);
+});

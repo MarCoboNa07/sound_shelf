@@ -22,7 +22,6 @@ $album_id = $_GET["album_id"] ?? null;
 
         <div class="main-content">
             <div id="album-container" class="album-page">
-
                 <header class="album-header">
                     <img id="album-cover" class="album-cover" src="" alt="Cover">
 
