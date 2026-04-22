@@ -167,10 +167,8 @@ async function fetchArtistFromAPI(id) {
     }
 }
 
-function renderArtistCard(data) {
+function renderArtistCard(artist) {
     const container = document.getElementById("artist-list");
-
-    const artist = data.artist;
 
     const a = document.createElement("a");
     a.className = "artist-card";
