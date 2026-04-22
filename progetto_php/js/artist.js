@@ -11,9 +11,11 @@ async function fetchArtistData(id) {
         const data = await response.json();
 
         // Passa anche topTracks qui!
-        renderArtistHeader(data.artist, data.topTracks); 
+        renderArtistHeader(data.artist, data.topTracks);
         renderTopTracks(data.topTracks);
         renderDiscography(data.albums);
+
+        initFollowButton(id);
     } catch (error) {
         console.error("Errore nel caricamento artista:", error);
     }
@@ -31,8 +33,8 @@ function renderArtistHeader(artist, topTracks) {
         // Usiamo addEventListener invece di onclick per maggiore pulizia
         mainPlayBtn.addEventListener("click", (e) => {
             // FONDAMENTALE: impedisce a navbar.js di sentire questo click
-            e.stopPropagation(); 
-            
+            e.stopPropagation();
+
             if (topTracks && topTracks.length > 0) {
                 playArtistTopTracks(topTracks);
             }
@@ -203,4 +205,65 @@ async function playArtistTopTracks(tracks) {
     showPlayer();
     loadCurrentSong();
     startPlayback();
+}
+
+async function initFollowButton(artistId) {
+    const btn = document.querySelector(".btn-outline");
+    if (!btn) return;
+
+    let isFollowing = false;
+
+    // 1. Stato iniziale
+    try {
+        const res = await fetch(`/progetto_php/api/check_follow.php?artist_id=${artistId}`);
+        const data = await res.json();
+
+        isFollowing = data.followed;
+
+        updateButton();
+    } catch (err) {
+        console.error(err);
+    }
+
+    // 2. Click toggle
+    btn.addEventListener("click", async () => {
+        if (!isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        try {
+            const url = isFollowing
+                ? "/progetto_php/api/unfollow_artist.php"
+                : "/progetto_php/api/follow_artist.php";
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `artist_id=${artistId}`
+            });
+
+            const data = await res.json();
+
+            if (data.success || data.message) {
+                isFollowing = !isFollowing;
+                updateButton();
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    function updateButton() {
+        if (isFollowing) {
+            btn.textContent = "Non seguire";
+            btn.classList.add("active");
+        } else {
+            btn.textContent = "Segui";
+            btn.classList.remove("active");
+        }
+    }
 }
