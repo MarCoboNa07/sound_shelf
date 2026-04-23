@@ -121,42 +121,6 @@ function renderTrackPage(track) {
     });
 }
 
-async function openPlaylistModal(songId) {
-    const modal = document.getElementById("playlist-select-modal");
-    const container = document.getElementById("playlist-select-list");
-
-    modal.classList.remove("hidden");
-    container.innerHTML = "Caricamento...";
-
-    try {
-        const res = await fetch(`/progetto_php/api/get_user_playlists_with_track.php?song_id=${songId}`);
-        const data = await res.json();
-
-        container.innerHTML = "";
-
-        data.playlists.forEach(p => {
-            const item = document.createElement("div");
-            item.className = "playlist-select-item";
-            item.textContent = p.name;
-
-            if (p.contains == 1) {
-                item.classList.add("disabled");
-            } else {
-                item.addEventListener("click", async () => {
-                    await addToPlaylist(songId, p.id);
-                    modal.classList.add("hidden");
-                });
-            }
-
-            container.appendChild(item);
-        });
-
-    } catch (err) {
-        console.error(err);
-        container.innerHTML = "Errore";
-    }
-}
-
 async function addToPlaylist(songId, playlistId) {
     const res = await fetch("/progetto_php/api/add_to_playlist.php", {
         method: "POST",

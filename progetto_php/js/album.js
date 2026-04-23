@@ -43,7 +43,9 @@ function renderAlbumPage(data) {
         if (window.innerWidth > 768) {
             fitTitleToContainer(albumTitle, 148, 24);
         } else {
-            albumTitle.style.fontSize = "28px";
+            title.style.fontSize = "28px";
+            title.style.whiteSpace = "normal";
+            title.style.letterSpacing = "0";
         }
     }, 0);
 
@@ -163,3 +165,56 @@ function formatPlays(num) {
     if (!num) return "—";
     return num.toLocaleString("it-IT");
 }
+
+document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".add-playlist-btn");
+    if (!btn) return;
+
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    const songId = btn.dataset.id;
+    openPlaylistModal(songId);
+});
+
+document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".add-to-playlist-main");
+    if (!btn) return;
+
+    if (!isLogged) {
+        window.location.href = "/progetto_php/login.php";
+        return;
+    }
+
+    if (btn.classList.contains("added")) return;
+
+    const albumId = document.body.dataset.albumId;
+
+    try {
+        const res = await fetch("/progetto_php/api/create_playlist_from_album.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `album_id=${albumId}`
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            alert(data.error || "Errore creazione playlist");
+            return;
+        }
+
+        btn.classList.add("added");
+        btn.innerHTML = `
+            <svg width="16" height="16" fill="currentColor">
+                <path d="M13.485 1.929a.75.75 0 0 1 1.06 1.06l-7.07 7.07-3.536-3.535a.75.75 0 1 1 1.06-1.06l2.476 2.475 6.01-6.01z"/>
+            </svg>
+        `;
+    } catch (err) {
+        console.error(err);
+    }
+});
