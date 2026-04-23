@@ -40,6 +40,8 @@ $playlist_id = $_GET["playlist_id"] ?? null;
                         </svg>
                     </button>
 
+                    <button class="delete-playlist-btn" id="delete-playlist-btn">Elimina</button>
+
                     <button class="album-action-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots more-icon" viewBox="0 0 16 16">
                             <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
@@ -62,6 +64,19 @@ $playlist_id = $_GET["playlist_id"] ?? null;
             </div>
         </div>
     </div>
+
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Eliminare la playlist?</h3>
+            <p>Questa azione è irreversibile.</p>
+
+            <div class="modal-actions">
+                <button id="cancel-delete">Annulla</button>
+                <button id="confirm-delete" class="danger">Elimina</button>
+            </div>
+        </div>
+    </div>
+
     <?php include "./components/player.php"; ?>
 
     <script src="./js/script.js"></script>
@@ -71,4 +86,5 @@ $playlist_id = $_GET["playlist_id"] ?? null;
     <script src="./js/player.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
 </body>
+
 </html>

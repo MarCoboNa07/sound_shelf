@@ -54,6 +54,67 @@
     padding: 0 40px;
 }
 
+.delete-playlist-btn {
+    background: #e02424;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.delete-playlist-btn:hover {
+    background: #ff4d4d;
+    transform: scale(1.05);
+}
+
+.delete-playlist-btn:active {
+    transform: scale(0.98);
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #181818;
+    padding: 24px;
+    border-radius: 12px;
+    width: 320px;
+    text-align: center;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-actions .danger {
+    background: #ff4d4d;
+    color: white;
+}
+
 @media (max-width: 768px) {
     .playlist-header {
         flex-direction: column;

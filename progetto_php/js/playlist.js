@@ -57,7 +57,7 @@ function renderPlaylist(data) {
 
         row.innerHTML = `
             <div class="track-number">
-                <span class="track-index">1</span>
+                <span class="track-index">${index + 1}</span>
                 <svg class="track-hover-play" viewBox="0 0 16 16" width="16" height="16">
                     <path fill="currentColor" d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
                 </svg>
@@ -130,6 +130,69 @@ async function startPlaylistQueue(playlistId) {
     }
 }
 
+async function deletePlaylist(playlistId) {
+    try {
+        const res = await fetch("/progetto_php/api/delete_playlist.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `playlist_id=${playlistId}`
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(data.error || "Errore eliminazione");
+        }
+
+        return true;
+
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+}
+
+const deleteBtn = document.getElementById("delete-playlist-btn");
+const modal = document.getElementById("delete-modal");
+const cancelBtn = document.getElementById("cancel-delete");
+const confirmBtn = document.getElementById("confirm-delete");
+
+if (deleteBtn) {
+    deleteBtn.addEventListener("click", () => {
+        if (!isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        modal.classList.remove("hidden");
+    });
+}
+
+if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+}
+
+if (confirmBtn) {
+    confirmBtn.addEventListener("click", async () => {
+        const playlistId = document.body.dataset.playlistId;
+
+        const success = await deletePlaylist(playlistId);
+
+        if (success) {
+            document.body.style.opacity = "0";
+            document.body.style.transition = "opacity 0.2s ease";
+
+            setTimeout(() => {
+                window.location.href = "/progetto_php/library.php";
+            }, 200);
+        }
+    });
+}
+
 document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".more-btn");
     if (!btn) return;
@@ -155,7 +218,6 @@ document.addEventListener("click", async (e) => {
         const data = await res.json();
 
         if (data.success) {
-            // animazione smooth
             row.style.transition = "opacity 0.2s ease";
             row.style.opacity = "0";
 
