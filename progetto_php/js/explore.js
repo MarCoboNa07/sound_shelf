@@ -1,12 +1,60 @@
 // js/explore.js
-// file javascript per la pagina esplora
+// file js per gestione pagina esplora
 
-// funzione per ottenere i generi musicali
-async function getGenres() {
-    const genresContainer = document.querySelector("#genres-container");
+// esegui la funzione al caricamento della pagina
+document.addEventListener("DOMContentLoaded", () => {
+    loadGenres();
+});
 
-    // palette di colori per i vari generi
-    const genreColors = {
+// ottieni i generi musicali
+async function loadGenres() {
+    const container = document.getElementById("genres-container");
+    if (!container) return;
+
+    try {
+        const res = await fetch("/progetto_php/api/get_genres.php");
+
+        if (!res.ok) {
+            throw new Error(`HTTP error: ${res.status}`);
+        }
+
+        const genres = await res.json();
+        if (!genres || genres.length === 0) {
+            container.innerHTML = `<p class="empty-state">Nessun genere disponibile</p>`;
+            return;
+        }
+
+        container.innerHTML = "";
+        genres.forEach(renderGenreCard);
+    } catch (err) {
+        console.error("Errore caricamento generi:", err);
+        container.innerHTML = `<p class="empty-state">Errore nel caricamento</p>`;
+    }
+}
+
+// renderizza i generi
+function renderGenreCard(genre) {
+    const container = document.getElementById("genres-container");
+
+    const card = document.createElement("a");
+    card.className = "genre-card";
+    card.href = `/progetto_php/genre.php?genre_id=${genre.id}`;
+
+    // colore dinamico per genere
+    const color = getGenreColor(genre.name);
+    card.style.backgroundColor = color;
+
+    card.innerHTML = `
+        <div class="genre-name">${genre.name}</div>
+        <img class="genre-image" src="${genre.picture}" alt="${genre.name}">
+    `;
+
+    container.appendChild(card);
+}
+
+// mappa dei colori per i generi
+function getGenreColor(name) {
+    const colors = {
         "pop": "#ff477e",
         "rap/hip hop": "#ff9f1c",
         "reggaeton": "#ff006e",
@@ -34,49 +82,6 @@ async function getGenres() {
         "musica latina": "#ff006e"
     };
 
-    try {
-        const response = await fetch("/progetto_php/api/get_genres.php"); // richiesta all'api php per ottenere i generi
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); // verifica se la risposta dà un errore
-
-        const genres = await response.json();
-
-        // verifica se non sono stati trovai generi
-        if (!genres || genres.length === 0) {
-            genresContainer.textContent = "Nessun genere disponibile.";
-            return;
-        }
-
-        // ciclo foreach per scorrere l'array dei generi
-        // ciclo foreach per scorrere l'array dei generi
-        genres.forEach(genre => {
-            const link = document.createElement("a");
-            link.classList.add("genre-card");
-            // Imposta l'href alla pagina del genere, ad esempio: genre.php?genre_id=ID
-            link.href = `genre.php?genre_id=${genre.id}`;
-
-            const genreName = genre.name.toLowerCase().trim();
-            const color = genreColors[genreName] || genreColors["default"] || "#444444"; // assegna il colore al genere
-
-            link.style.backgroundColor = color;
-
-            const title = document.createElement("div");
-            title.classList.add("genre-name");
-            title.textContent = genre.name;
-
-            const img = document.createElement("img");
-            img.classList.add("genre-image");
-            img.src = genre.picture;
-            img.alt = genre.name;
-
-            link.appendChild(title);
-            link.appendChild(img);
-
-            genresContainer.appendChild(link);
-        });
-    } catch (error) {
-        console.error("Errore nel caricamento dei generi:", error);
-        genresContainer.textContent = "Impossibile caricare i generi.";
-    }
+    const key = name.toLowerCase().trim();
+    return colors[key] || "#444444"; // fallback colore
 }
-
-document.addEventListener("DOMContentLoaded", getGenres);

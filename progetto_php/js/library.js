@@ -1,29 +1,44 @@
+// js/library.js
+// file js per gestione pagina libreria (playlist + artisti seguiti + creazione playlist)
+
+// carica i dati nel body della pagina
 document.addEventListener("DOMContentLoaded", async () => {
+    initPlaylistModal();
+
+    await loadPlaylists();
+    await loadFollowedArtists();
+});
+
+// inizializza il modal per creare la playlist
+function initPlaylistModal() {
     const openBtn = document.getElementById("create-playlist-btn");
     const modal = document.getElementById("playlist-modal");
     const cancelBtn = document.getElementById("cancel-playlist");
     const saveBtn = document.getElementById("save-playlist");
 
-    await loadPlaylists();
-    await loadFollowedArtists();
+    if (!openBtn || !modal) return;
 
+    // apertura modal
     openBtn.addEventListener("click", () => {
         modal.classList.remove("hidden");
 
         const nameInput = document.getElementById("playlist-name");
-        const textarea = document.getElementById("playlist-description");
+        const descInput = document.getElementById("playlist-description");
 
+        // reset campi
         nameInput.value = "";
-        textarea.value = "";
+        descInput.value = "";
 
         nameInput.focus();
     });
 
-    cancelBtn.addEventListener("click", () => {
+    // chiusura modal
+    cancelBtn?.addEventListener("click", () => {
         modal.classList.add("hidden");
     });
 
-    saveBtn.addEventListener("click", async () => {
+    // creazione playlist
+    saveBtn?.addEventListener("click", async () => {
         const nameInput = document.getElementById("playlist-name");
         const errorEl = document.getElementById("playlist-error");
 
@@ -45,13 +60,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (success) {
             modal.classList.add("hidden");
-            await loadPlaylists();
+            await loadPlaylists(); // refresh lista
         } else {
             errorEl.textContent = "Errore durante la creazione";
         }
     });
-});
+}
 
+// crea playlist
 async function createPlaylist(name, description) {
     try {
         const res = await fetch("/progetto_php/api/create_playlist.php", {
@@ -63,23 +79,19 @@ async function createPlaylist(name, description) {
         });
 
         const data = await res.json();
+        if (data.success) return true;
 
-        if (data.success) {
-            return true;
-        } else {
-            alert(data.error || "Errore");
-            return false;
-        }
-
+        alert(data.error || "Errore");
+        return false;
     } catch (err) {
         console.error(err);
         return false;
     }
 }
 
+// carica la playlist
 async function loadPlaylists() {
     const container = document.getElementById("playlist-list");
-
     if (!container) return;
 
     try {
@@ -100,18 +112,19 @@ async function loadPlaylists() {
             return;
         }
 
-        data.playlists.forEach(p => rednerPlaylist(p));
-
+        data.playlists.forEach(renderPlaylistCard);
     } catch (err) {
         console.error(err);
         container.innerHTML = `<p class="empty-state">Errore nel caricamento</p>`;
     }
 }
 
-function rednerPlaylist(playlist) {
+
+// renderizza playlist
+function renderPlaylistCard(playlist) {
     const container = document.getElementById("playlist-list");
 
-    const card = document.createElement("a"); // 🔥 cambia da div a <a>
+    const card = document.createElement("a");
     card.className = "playlist-card";
     card.href = `/progetto_php/playlist.php?playlist_id=${playlist.id}`;
 
@@ -129,6 +142,7 @@ function rednerPlaylist(playlist) {
     container.appendChild(card);
 }
 
+// carica gli artisti seguit
 async function loadFollowedArtists() {
     const container = document.getElementById("artist-list");
     if (!container) return;
@@ -139,14 +153,15 @@ async function loadFollowedArtists() {
 
         container.innerHTML = "";
 
+        // nessun artista seguito
         if (!data.artists || data.artists.length === 0) {
             container.innerHTML = `<p class="empty-state">Non segui ancora artisti</p>`;
             return;
         }
 
         for (const id of data.artists) {
-            const artist = await fetchArtistFromAPI(id);
-            if (artist) renderArtistCard(artist.artist);
+            const artistData = await fetchArtist(id);
+            if (artistData) renderArtistCard(artistData.artist);
         }
 
     } catch (err) {
@@ -154,7 +169,9 @@ async function loadFollowedArtists() {
     }
 }
 
-async function fetchArtistFromAPI(id) {
+
+// ottieni i dati dell'artista
+async function fetchArtist(id) {
     try {
         const res = await fetch(`/progetto_php/api/get_artist.php?artist_id=${id}`);
         const data = await res.json();
@@ -168,17 +185,18 @@ async function fetchArtistFromAPI(id) {
     }
 }
 
+// renderizza la card dell'artista
 function renderArtistCard(artist) {
     const container = document.getElementById("artist-list");
 
-    const a = document.createElement("a");
-    a.className = "artist-card";
-    a.href = `/progetto_php/artist.php?artist_id=${artist.id}`;
+    const card = document.createElement("a");
+    card.className = "artist-card";
+    card.href = `/progetto_php/artist.php?artist_id=${artist.id}`;
 
-    a.innerHTML = `
+    card.innerHTML = `
         <img class="artist-img" src="${artist.picture_xl}" alt="${artist.name}">
         <div class="artist-name">${artist.name}</div>
     `;
 
-    container.appendChild(a);
+    container.appendChild(card);
 }

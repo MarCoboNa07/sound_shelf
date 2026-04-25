@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Protezione: se non loggato → login
+// verifica la sessione dell'utente
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
@@ -17,11 +17,11 @@ $email = $_SESSION["email"];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Shelf | Profilo</title>
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/profile.css">
     <link rel="stylesheet" href="./css/navbar.css">
     <link rel="stylesheet" href="./css/player.css">
+    <title>Sound Shelf | Profilo</title>
 </head>
 
 <body>

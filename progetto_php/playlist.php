@@ -14,7 +14,7 @@ $playlist_id = $_GET["playlist_id"] ?? null;
     <link rel="stylesheet" href="./css/navbar.css">
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/album.css">
-    <title>Document</title>
+    <title>Sound Shelf | Playlist</title>
 </head>
 
 <body data-playlist-id="<?php echo htmlspecialchars($playlist_id); ?>">

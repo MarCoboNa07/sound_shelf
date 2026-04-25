@@ -1,24 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 
+:root {
+    --bg-dark: #0f0f0f;
+    --bg-card: #181818;
+    --bg-card-hover: #282828;
+    --primary-green: #1db954;
+    --text-main: #ffffff;
+    --text-dim: #b3b3b3;
+    --font-main: "Google Sans", sans-serif;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Google Sans", sans-serif;
+    font-family: var(--font-main);
 }
 
 body {
-    background-color: #0f0f0f;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    -webkit-overflow-scrolling: touch;
 }
 
 .explicit-label {
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     width: 16px;
     height: 16px;
-    color: #0f0f0f;
+    color: var(--bg-dark);
     font-size: 11px;
+    font-weight: bold;
     border-radius: 2px;
     background-color: #c2c2c2;
+    flex-shrink: 0;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

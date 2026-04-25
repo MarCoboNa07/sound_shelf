@@ -1,20 +1,19 @@
 <?php
 // api/get_trending_data.php
-// api per ottenere artisti, album e brani in tendenza trami le api di Deezer
+// api per ottenere artisti, album e brani in tendenza su deezer
 
-header("Content-Type: application/json"); // risposta in fomato json
+header("Content-Type: application/json");
 
-$url = "https://api.deezer.com/chart/IT"; // endpoint di Deezer per ottenere statistiche sui dati musicali
-
-// effettua una richiesta http verso un'api
+// richiesta alle api di deezer per ottenere le tendenze in italia
+$url = "https://api.deezer.com/chart/IT";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-// risposta del server di Deezer
 $response = curl_exec($ch);
 curl_close($ch);
 
+// conversione da json ad array php
 $data = json_decode($response, true);
 $results = [
     "artists" => [],
@@ -22,9 +21,8 @@ $results = [
     "tracks" => []
 ];
 
-// verifica se sono stati trovati artisti in tendenza
+// artisti in tendenza
 if (!empty($data["artists"]["data"])) {
-    // scorri l'array degli artisti in tendenza per aggiungerli all'array dei risultati
     foreach (array_slice($data["artists"]["data"], 0, 10) as $artist) {
         $results["artists"][] = [
             "id" => $artist["id"],
@@ -35,9 +33,8 @@ if (!empty($data["artists"]["data"])) {
     }
 }
 
-// verifica se sono stati trovati album in tendenza
+// album in tendenza
 if (!empty($data["albums"]["data"])) {
-    // scorri l'array degli album in tendenza per aggiungerli all'array dei risultati
     foreach (array_slice($data["albums"]["data"], 0, 10) as $album) {
         $results["albums"][] = [
             "id" => $album["id"],
@@ -50,9 +47,8 @@ if (!empty($data["albums"]["data"])) {
     }
 }
 
-// verifica se sono stati trovati brani in tendenza
+// singoli in tendenza
 if (!empty($data["tracks"]["data"])) {
-    // scorri l'array dei brani in tendenza per aggiungerli all'array dei risultati
     foreach (array_slice($data["tracks"]["data"], 0, 10) as $track) {
         $results["tracks"][] = [
             "id" => $track["id"],
@@ -68,5 +64,5 @@ if (!empty($data["tracks"]["data"])) {
     }
 }
 
-echo json_encode($results, JSON_PRETTY_PRINT); // restituisci i dati in formato json
+echo json_encode($results);
 ?>

@@ -13,7 +13,7 @@ $album_id = $_GET["album_id"] ?? null;
     <link rel="stylesheet" href="./css/album.css">
     <link rel="stylesheet" href="./css/navbar.css">
     <link rel="stylesheet" href="./css/player.css">
-    <title>Document</title>
+    <title>Sound Shelf | Album</title>
 </head>
 
 <body data-album-id="<?php echo htmlspecialchars($album_id); ?>">
@@ -78,7 +78,6 @@ $album_id = $_GET["album_id"] ?? null;
     <?php include "./components/player.php"; ?>
 
     <script src="./js/script.js"></script>
-    <script src="./js/track.js"></script>
     <script src="./js/album.js"></script>
     <script src="./js/navbar.js"></script>
     <script src="./js/player.js"></script>

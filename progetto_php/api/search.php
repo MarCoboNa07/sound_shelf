@@ -1,32 +1,28 @@
 <?php
 // api/search.php
-// api per effettuare la ricerca di brani, album e artisti tramite le api di Deezer
+// api per la ricerca di brani, album e artisti tramite deezer
 
-header("Content-Type: application/json"); // risposta in fomato json
+header("Content-Type: application/json");
 
-// leggi la query di ricerca
+// input dati
 $searchQuery = $_GET["search-query"] ?? "";
 $searchQuery = trim($searchQuery);
 
-// verifica se la query è vuota
 if ($searchQuery === "") {
     echo json_encode([]);
     exit;
 }
 
-// funzione per effettuare la ricerca tramite l'api di Deezer
-function search($query, $limit = 15)
-{
-    $url = "https://api.deezer.com/search?q=" . urlencode($query) . "&limit=$limit"; // endpoint di Deezer per la ricerca
+// richiesta alle api di deezer per ricerca brani
+function search($query, $limit = 15) {
+    $url = "https://api.deezer.com/search?q=" . urlencode($query) . "&limit=$limit";
 
-    // effettua una richiesta http verso un'api
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
 
-    // risposta del server di Deezer
     $response = curl_exec($ch);
 
     if ($response === false) {
@@ -36,39 +32,38 @@ function search($query, $limit = 15)
 
     curl_close($ch);
 
-    $data = json_decode($response, true); // converti i dati da json ad array
-    return $data['data'] ?? [];
+    $data = json_decode($response, true);
+    return $data["data"] ?? [];
 }
 
-// funzione per cercare gli artisti
-function searchArtist($query)
-{
-    $url = "https://api.deezer.com/search/artist?q=" . urlencode($query) . "&limit=1"; // endpoint di Deezer per la ricerca degli artisti
+// richiesta alle api di deezer per ricerca artisti
+function searchArtist($query) {
+    $url = "https://api.deezer.com/search/artist?q=" . urlencode($query) . "&limit=1";
 
-    // effettua una richiesta http verso un'api
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    // risposta del server di Deezer
     $response = curl_exec($ch);
     curl_close($ch);
 
-    $data = json_decode($response, true); // converti i dati da json ad array
-    return $data['data'][0] ?? null;
+    $data = json_decode($response, true);
+
+    return $data["data"][0] ?? null;
 }
 
-$data = search($searchQuery, 20); // effettua la ricerca
-$artistData = searchArtist($searchQuery); // effettua la ricerca degli artisti
-$results = [ // array per salvare i risultati della ricerca
-    'artist' => null,
-    'albums' => [],
-    'tracks' => []
+$data = search($searchQuery, 20);
+$artistData = searchArtist($searchQuery);
+
+$results = [
+    "artist" => null,
+    "albums" => [],
+    "tracks" => []
 ];
 
-// verifica se è stato trovato un artista
+// artista principale brano o album
 if ($artistData) {
-    $results["artist"] = [ // salva l'artista nell'array dei risultati
+    $results["artist"] = [
         "id" => $artistData["id"],
         "name" => $artistData["name"],
         "picture" => $artistData["picture_xl"],
@@ -76,16 +71,17 @@ if ($artistData) {
     ];
 }
 
-$savedAlbums = []; // array per tracciare album già salvati
+// album e brani
+$savedAlbums = [];
 
-// ciclo foreach per scorrere l'array dei dati restituiti
 foreach ($data as $item) {
-    if (count($results["tracks"]) < 5) { // verifica se sono stati trovati meno di 5 brani
-        $results["tracks"][] = [ // salva il brano nell'array dei risultati
+    // limite tracce
+    if (count($results["tracks"]) < 5) {
+        $results["tracks"][] = [
             "id" => $item["id"],
             "title" => $item["title"],
             "album" => [
-                "id"    => $item["album"]["id"],
+                "id" => $item["album"]["id"],
                 "title" => $item["album"]["title"]
             ],
             "cover" => $item["album"]["cover_xl"],
@@ -96,23 +92,26 @@ foreach ($data as $item) {
         ];
     }
 
+    // limite album con esclusione duplicati
     $albumId = $item["album"]["id"];
-    if (!in_array($albumId, $savedAlbums) && count($results["albums"]) < 5) { // verifica se sono stati trovati meno di 5 album
-        $results["albums"][] = [ // salva l'album nell'array dei risultati
-            "id" => $item["album"]["id"],
+
+    if (!in_array($albumId, $savedAlbums) && count($results["albums"]) < 5) {
+        $results["albums"][] = [
+            "id" => $albumId,
             "title" => $item["album"]["title"],
             "cover" => $item["album"]["cover_xl"],
             "link" => $item["album"]["link"] ?? null,
             "artist" => $item["artist"]["name"]
         ];
+
         $savedAlbums[] = $albumId;
     }
 
-    // se sono stati salvati almeno 5 brani e 5 album interrompi il ciclo
+    // interrompi il ciclo se raggiunto il limite
     if (count($results["albums"]) >= 5 && count($results["tracks"]) >= 5) {
         break;
     }
 }
 
-echo json_encode($results, JSON_PRETTY_PRINT); // restituisci i dati in formato json
+echo json_encode($results);
 ?>

@@ -13,7 +13,7 @@ $artist_id = $_GET["artist_id"] ?? null;
     <link rel="stylesheet" href="./css/artist.css">
     <link rel="stylesheet" href="./css/navbar.css">
     <link rel="stylesheet" href="./css/player.css">
-    <title>Artista</title>
+    <title>Sound Shelf | Artista</title>
 </head>
 
 <body data-artist-id="<?php echo htmlspecialchars($artist_id); ?>">

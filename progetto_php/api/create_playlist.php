@@ -1,51 +1,53 @@
 <?php
+// api/create_playlist.php
+// api per creare una nuova playlist per l'utente
+
 session_start();
 require "connection.php";
 
 header("Content-Type: application/json");
 
-// 1. Verifica login
+// verifica sessione
 if (!isset($_SESSION["user_id"])) {
-    http_response_code(401);
-    echo json_encode(["error" => "Non autenticato"]);
+    echo json_encode(["error" => "not_logged"]);
     exit;
 }
 
-// 2. Metodo POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
+    echo json_encode(["error" => "invalid_method"]);
     exit;
 }
 
-// 3. Dati
+// input dati
+$user_id = $_SESSION["user_id"];
 $name = trim($_POST["name"] ?? "");
 $description = trim($_POST["description"] ?? "");
-$user_id = $_SESSION["user_id"];
 
-// 4. Validazione
+// validazione dati
 if (!$name) {
-    http_response_code(400);
-    echo json_encode(["error" => "Nome obbligatorio"]);
+    echo json_encode(["error" => "missing_name"]);
     exit;
 }
 
-// limita descrizione lato server
+// limite descrizione
 if (strlen($description) > 256) {
     $description = substr($description, 0, 256);
 }
 
-// 5. Insert
-$query = "INSERT INTO playlist (name, description, user_id) VALUES (?, ?, ?)";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("ssi", $name, $description, $user_id);
+// crea la playlist
+$stmt = $conn->prepare("
+    INSERT INTO playlist (name, description, user_id)
+    VALUES (?, ?, ?)
+");
 
-if ($stmt->execute()) {
-    echo json_encode([
-        "success" => true,
-        "playlist_id" => $stmt->insert_id
-    ]);
-} else {
-    http_response_code(500);
-    echo json_encode(["error" => "Errore creazione playlist"]);
-}
+$stmt->bind_param("ssi", $name, $description, $user_id);
+$stmt->execute();
+
+$playlist_id = $stmt->insert_id;
+$stmt->close();
+
+echo json_encode([
+    "success" => true,
+    "playlist_id" => $playlist_id
+]);
 ?>

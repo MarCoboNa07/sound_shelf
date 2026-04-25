@@ -1,56 +1,61 @@
-document.addEventListener("DOMContentLoaded", async () => {
+// js/playlist.js
+// file js per gestione pagina playlist
+
+// carica i dati nel body della pagina
+document.addEventListener("DOMContentLoaded", () => {
     const playlistId = document.body.dataset.playlistId;
     if (!playlistId) return;
 
+    loadPlaylist(playlistId);
+});
+
+// ottieni i dati della playlist dal db
+async function loadPlaylist(playlistId) {
     try {
         const res = await fetch(`/progetto_php/api/get_playlist.php?playlist_id=${playlistId}`);
         const data = await res.json();
 
+        if (!data) return;
+
         renderPlaylist(data);
+        initDeleteModal(playlistId);
+        initMainPlay(playlistId);
 
     } catch (err) {
-        console.error(err);
+        console.error("Errore load playlist:", err);
     }
-});
+}
 
+// renderizza la playlist
 function renderPlaylist(data) {
-    const { playlist_name, tracks } = data;
+    const { playlist_name, tracks = [] } = data;
 
     const title = document.querySelector("#playlist-title");
     const meta = document.querySelector("#playlist-meta");
     const container = document.querySelector("#playlist-track-container");
     const cover = document.querySelector("#playlist-cover");
 
+    if (!title || !meta || !container || !cover) return;
+
     title.textContent = playlist_name || "Playlist";
-    setTimeout(() => {
-        const isMobile = window.innerWidth <= 768;
-
-        if (!isMobile) {
-            fitTitleToContainer(title, 148, 24);
-        } else {
-            title.style.fontSize = "28px";
-            title.style.whiteSpace = "normal";
-            title.style.letterSpacing = "0";
-        }
-    }, 0);
-
     const totalSeconds = tracks.reduce((sum, t) => sum + (t.duration || 0), 0);
-    meta.textContent = `${tracks.length} brani • ${formatDuration(totalSeconds)}`;
+    meta.textContent = `${tracks.length} brani • ${window.formatDuration(totalSeconds)}`;
 
-    container.innerHTML = "";
-
+    // cover + gradient dinamico
     if (tracks.length > 0) {
         cover.crossOrigin = "Anonymous";
+        cover.src = tracks[0].cover;
 
         cover.onload = () => {
             const colorThief = new ColorThief();
             const color = colorThief.getColor(cover);
-            applyAlbumGradient(color);
-        };
 
-        cover.src = tracks[0].cover;
+            window.applyAlbumGradient?.(color);
+        };
     }
 
+    // tracklist
+    container.innerHTML = "";
     tracks.forEach((track, index) => {
         const row = document.createElement("div");
         row.className = "track-row";
@@ -68,12 +73,14 @@ function renderPlaylist(data) {
                     <span class="track-title">${track.title}</span>
                     <span class="track-artist">
                         ${track.explicit ? `<span class="explicit-label">E</span>` : ""}
-                        <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a>
+                        <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">
+                            ${track.artist}
+                        </a>
                     </span>
                 </div>
             </div>
 
-            <span class="track-rank">${formatPlays(track.rank)}</span>
+            <span class="track-rank">${window.formatPlays(track.rank)}</span>
 
             <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -82,37 +89,46 @@ function renderPlaylist(data) {
                 </svg>
             </button>
 
-            <span class="track-duration">${formatDuration(track.duration)}</span>
+            <span class="track-duration">${window.formatDuration(track.duration)}</span>
 
             <button class="track-action-btn more-btn" data-id="${track.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                <svg viewBox="0 0 16 16" width="16" height="16">
                     <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
                 </svg>
             </button>
         `;
-        container.appendChild(row);
 
-        row.querySelector(".track-hover-play").addEventListener("click", async (e) => {
-            e.stopPropagation();
+        // play del brano
+        row.addEventListener("click", async (e) => {
+            if (e.target.closest(".track-action-btn")) return;
 
-            if (!isLogged) {
+            if (!window.isLogged) {
                 window.location.href = "/progetto_php/login.php";
                 return;
             }
 
-            await startQueue(track);
+            await window.startQueue?.({
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                cover: track.cover,
+                duration: track.duration
+            });
         });
+
+        container.appendChild(row);
     });
 }
 
+// play della playlist
 async function startPlaylistQueue(playlistId) {
     try {
         const res = await fetch(`/progetto_php/api/get_playlist.php?playlist_id=${playlistId}`);
         const data = await res.json();
 
-        if (!data.tracks || !data.tracks.length) return;
+        if (!data.tracks?.length) return;
 
-        queue = data.tracks.map(track => ({
+        const formatted = data.tracks.map(track => ({
             id: track.id,
             title: track.title,
             artist: track.artist,
@@ -120,16 +136,93 @@ async function startPlaylistQueue(playlistId) {
             duration: parseInt(track.duration)
         }));
 
+        const first = formatted[0];
+        const rest = formatted.slice(1);
+
+        // reset + prima traccia
+        await fetch("/progetto_php/api/add_to_queue.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `song_id=${first.id}`
+        });
+
+        // aggiungi il resto della coda
+        if (rest.length > 0) {
+            await fetch("/progetto_php/api/add_related_tracks.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "tracks=" + encodeURIComponent(JSON.stringify(rest))
+            });
+        }
+
+        // sincronizza la coda lato client
+        queue = formatted;
         currentIndex = 0;
 
         showPlayer();
         loadCurrentSong();
-
+        startPlayback();
     } catch (err) {
         console.error(err);
     }
 }
 
+// inizializza bottone play principale
+function initMainPlay(playlistId) {
+    document.querySelector(".main-play")?.addEventListener("click", async () => {
+        if (!window.isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        await startPlaylistQueue(playlistId);
+    });
+}
+
+// inizializza modal eliminazione
+function initDeleteModal(playlistId) {
+    const deleteBtn = document.getElementById("delete-playlist-btn");
+    const modal = document.getElementById("delete-modal");
+    const cancelBtn = document.getElementById("cancel-delete");
+    const confirmBtn = document.getElementById("confirm-delete");
+
+    if (!deleteBtn || !modal) return;
+
+    deleteBtn.addEventListener("click", () => {
+        if (!window.isLogged) {
+            window.location.href = "/progetto_php/login.php";
+            return;
+        }
+
+        modal.classList.remove("hidden");
+    });
+
+    cancelBtn?.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+
+    // click fuori dal modal per chiudere
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.add("hidden");
+        }
+    });
+
+    confirmBtn?.addEventListener("click", async () => {
+        const success = await deletePlaylist(playlistId);
+
+        if (success) {
+            document.body.style.opacity = "0";
+            document.body.style.transition = "opacity 0.2s ease";
+
+            setTimeout(() => {
+                window.location.href = "/progetto_php/library.php";
+            }, 200);
+        }
+    });
+}
+
+// elimina playlist
 async function deletePlaylist(playlistId) {
     try {
         const res = await fetch("/progetto_php/api/delete_playlist.php", {
@@ -154,50 +247,12 @@ async function deletePlaylist(playlistId) {
     }
 }
 
-const deleteBtn = document.getElementById("delete-playlist-btn");
-const modal = document.getElementById("delete-modal");
-const cancelBtn = document.getElementById("cancel-delete");
-const confirmBtn = document.getElementById("confirm-delete");
-
-if (deleteBtn) {
-    deleteBtn.addEventListener("click", () => {
-        if (!isLogged) {
-            window.location.href = "/progetto_php/login.php";
-            return;
-        }
-
-        modal.classList.remove("hidden");
-    });
-}
-
-if (cancelBtn) {
-    cancelBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-}
-
-if (confirmBtn) {
-    confirmBtn.addEventListener("click", async () => {
-        const playlistId = document.body.dataset.playlistId;
-
-        const success = await deletePlaylist(playlistId);
-
-        if (success) {
-            document.body.style.opacity = "0";
-            document.body.style.transition = "opacity 0.2s ease";
-
-            setTimeout(() => {
-                window.location.href = "/progetto_php/library.php";
-            }, 200);
-        }
-    });
-}
-
+// rimozione brano dalla playlist
 document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".more-btn");
     if (!btn) return;
 
-    if (!isLogged) {
+    if (!window.isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
@@ -218,15 +273,8 @@ document.addEventListener("click", async (e) => {
         const data = await res.json();
 
         if (data.success) {
-            row.style.transition = "opacity 0.2s ease";
             row.style.opacity = "0";
-
-            setTimeout(() => {
-                row.remove();
-            }, 200);
-
-        } else {
-            console.error(data.error);
+            setTimeout(() => row.remove(), 200);
         }
 
     } catch (err) {
@@ -234,16 +282,15 @@ document.addEventListener("click", async (e) => {
     }
 });
 
-document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".main-play");
-    if (!btn) return;
+const playlistTitle = document.getElementById("playlist-title");
 
-    if (!isLogged) {
-        window.location.href = "/progetto_php/login.php";
-        return;
-    }
+// observer per ridimensionare il titolo in base al container
+if (playlistTitle) {
+    const observer = new ResizeObserver(() => {
+        if (window.innerWidth > 768) {
+            window.fitTitleToContainer?.(playlistTitle, 140, 24);
+        }
+    });
 
-    const playlistId = document.body.dataset.playlistId;
-
-    await startPlaylistQueue(playlistId);
-});
+    observer.observe(playlistTitle.parentElement);
+}

@@ -1,59 +1,94 @@
+// js/artist.jsS
+// file js per gestione pagina artista
+
+// carica i dati nel body della pagina
 document.addEventListener("DOMContentLoaded", () => {
     const artistId = document.body.dataset.artistId;
-    if (artistId) {
-        fetchArtistData(artistId);
-    }
+    if (!artistId) return;
+
+    loadArtist(artistId);
 });
 
-async function fetchArtistData(id) {
+// ottieni i dati dell'artista dal db
+async function loadArtist(artistId) {
     try {
-        const response = await fetch(`/progetto_php/api/get_artist.php?artist_id=${id}`);
-        const data = await response.json();
+        const res = await fetch(`/progetto_php/api/get_artist.php?artist_id=${artistId}`);
+        const data = await res.json();
 
-        // Passa anche topTracks qui!
+        if (!data?.artist) return;
+
         renderArtistHeader(data.artist, data.topTracks);
         renderTopTracks(data.topTracks);
         renderDiscography(data.albums);
-
-        initFollowButton(id);
-    } catch (error) {
-        console.error("Errore nel caricamento artista:", error);
+        initFollowButton(artistId);
+    } catch (err) {
+        console.error("Errore load artist:", err);
     }
 }
 
+// renderizza l'artista
 function renderArtistHeader(artist, topTracks) {
-    document.getElementById("artist-name").textContent = artist.name;
-    document.getElementById("artist-stats").textContent = `${Number(artist.nb_fan).toLocaleString()} ascoltatori mensili`;
-
+    const nameEl = document.getElementById("artist-name");
+    const statsEl = document.getElementById("artist-stats");
     const header = document.getElementById("artist-header");
-    header.style.backgroundImage = `linear-gradient(transparent, rgba(18, 18, 18, 0.9)), url('${artist.picture_xl}')`;
 
-    const mainPlayBtn = document.getElementById("play-artist-main");
-    if (mainPlayBtn) {
-        // Usiamo addEventListener invece di onclick per maggiore pulizia
-        mainPlayBtn.addEventListener("click", (e) => {
-            // FONDAMENTALE: impedisce a navbar.js di sentire questo click
+    if (!nameEl || !statsEl || !header) return;
+
+    // nome e stats
+    nameEl.textContent = artist.name;
+    statsEl.textContent = `${Number(artist.nb_fan).toLocaleString()} ascoltatori mensili`;
+
+    // immagine header e overlay
+    header.style.backgroundImage = `
+        linear-gradient(transparent, rgba(18,18,18,0.9)),
+        url('${artist.picture_xl}')
+    `;
+
+    // colore gradient dinamico
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = artist.picture_xl;
+
+    img.onload = () => {
+        const colorThief = new ColorThief();
+        const color = colorThief.getColor(img);
+
+        window.applyAlbumGradient?.(color);
+    };
+
+    // play principale
+    const playBtn = document.getElementById("play-artist-main");
+
+    if (playBtn) {
+        playBtn.addEventListener("click", (e) => {
             e.stopPropagation();
 
-            if (topTracks && topTracks.length > 0) {
+            if (!window.isLogged) {
+                window.location.href = "/progetto_php/login.php";
+                return;
+            }
+
+            if (topTracks?.length > 0) {
                 playArtistTopTracks(topTracks);
             }
         });
     }
 }
 
-function renderTopTracks(tracks) {
+// renderizza la top 10 brani
+function renderTopTracks(tracks = []) {
     const container = document.getElementById("top-tracks-container");
+    if (!container) return;
 
-    // stessa classe della tracklist album
     container.className = "tracklist";
     container.innerHTML = "";
 
+    // cicla i brani
     tracks.forEach((track, index) => {
-        const trackRow = document.createElement("div");
-        trackRow.className = "track-row";
+        const row = document.createElement("div");
+        row.className = "track-row";
 
-        trackRow.innerHTML = `
+        row.innerHTML = `
             <div class="track-number">
                 <span class="track-index">${index + 1}</span>
                 <div 
@@ -87,7 +122,7 @@ function renderTopTracks(tracks) {
                 </div>
             </div>
 
-            <span class="track-rank">${Number(track.rank).toLocaleString()}</span>
+            <span class="track-rank">${window.formatPlays(track.rank)}</span>
 
             <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -96,7 +131,9 @@ function renderTopTracks(tracks) {
                 </svg>
             </button>
 
-            <span class="track-duration">${formatTime(track.duration)}</span>
+            <span class="track-duration">
+                ${window.formatDuration(track.duration)}
+            </span>
 
             <button class="track-action-btn more-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -105,15 +142,38 @@ function renderTopTracks(tracks) {
             </button>
         `;
 
-        container.appendChild(trackRow);
+        // play del brano
+        row.addEventListener("click", async (e) => {
+            if (e.target.closest(".track-action-btn, .play-btn")) return;
+
+            if (!window.isLogged) {
+                window.location.href = "/progetto_php/login.php";
+                return;
+            }
+
+            await window.startQueue?.({
+                id: track.id,
+                title: track.title,
+                artist: track.artist.name,
+                cover: track.album.cover_medium,
+                duration: track.duration
+            });
+        });
+
+        container.appendChild(row);
     });
 }
 
-function renderDiscography(albums) {
+// renderizza la discografia
+function renderDiscography(albums = []) {
     const container = document.getElementById("artist-albums-container");
+    if (!container) return;
+
     container.innerHTML = "";
 
+    // cicla gli album
     albums.forEach(item => {
+        // verifica se si tratta di un album o di un singolo
         const isSingle = item.record_type === "single";
 
         const link = isSingle
@@ -121,24 +181,21 @@ function renderDiscography(albums) {
             : `/progetto_php/album.php?album_id=${item.id}`;
 
         const card = document.createElement("a");
-        card.classList.add("trending-card");
+        card.className = "trending-card";
         card.href = link;
-
-        const playButton = `
-            <div class="trending-play play-btn"
-                data-type="${isSingle ? "song" : "album"}"
-                data-id="${isSingle ? item.track_id : item.id}">
-                <svg viewBox="0 0 16 16" width="16" height="16">
-                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                </svg>
-            </div>
-        `;
 
         card.innerHTML = `
             <div class="trending-cover-wrapper">
                 <img src="${item.cover_xl}" alt="${item.title}">
-                ${playButton}
+                <div class="trending-play play-btn"
+                    data-type="${isSingle ? "song" : "album"}"
+                    data-id="${isSingle ? item.track_id : item.id}">
+                    <svg viewBox="0 0 16 16" width="16" height="16">
+                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                    </svg>
+                </div>
             </div>
+
             <div class="trending-info">
                 <a href="${link}" class="trending-title">${item.title}</a>
                 <span class="trending-artist">
@@ -147,96 +204,117 @@ function renderDiscography(albums) {
             </div>
         `;
 
-        // blocca click su play
-        const playBtn = card.querySelector(".play-btn");
-        playBtn.addEventListener("click", (e) => {
+        // evita click su play che apra il link
+        card.querySelector(".play-btn")?.addEventListener("click", async (e) => {
             e.preventDefault();
+            e.stopPropagation();
+
+            if (!window.isLogged) {
+                window.location.href = "/progetto_php/login.php";
+                return;
+            }
+
+            try {
+                // singolo
+                if (isSingle) {
+                    const res = await fetch(`/progetto_php/api/get_track.php?track_id=${item.track_id}`);
+                    const track = await res.json();
+
+                    await window.startQueue?.({
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist,
+                        cover: track.cover,
+                        duration: track.duration
+                    });
+                    return;
+                }
+
+                // album
+                await window.startAlbumQueue?.(item.id);
+            } catch (err) {
+                console.error("Errore play discografia:", err);
+            }
         });
 
         container.appendChild(card);
     });
 }
 
-function formatTime(seconds) {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-}
-
+// play per la top 10 brani
 async function playArtistTopTracks(tracks) {
-    if (!isLogged) {
+    if (!window.isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
 
-    // Trasformiamo i dati di Deezer nel tuo formato standard
-    const formattedTracks = tracks.map(track => ({
-        id: track.id,
-        title: track.title,
-        artist: track.artist.name,
-        cover: track.album.cover_medium,
-        duration: track.duration
+    const formatted = tracks.map(t => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist.name,
+        cover: t.album.cover_medium,
+        duration: t.duration
     }));
 
-    const firstTrack = formattedTracks[0];
-    const restOfTracks = formattedTracks.slice(1);
+    const first = formatted[0];
+    const rest = formatted.slice(1);
 
-    // 1. Reset DB e aggiungi la prima traccia (endpoint add_to_queue)
+    // reset coda + prima traccia
     await fetch("/progetto_php/api/add_to_queue.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `song_id=${firstTrack.id}`
+        body: `song_id=${first.id}`
     });
 
-    // 2. Aggiungi il resto delle top 10 al DB (endpoint add_related_tracks)
-    if (restOfTracks.length > 0) {
+    // aggiungi il resto della coda
+    if (rest.length > 0) {
         await fetch("/progetto_php/api/add_related_tracks.php", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "tracks=" + encodeURIComponent(JSON.stringify(restOfTracks))
+            body: "tracks=" + encodeURIComponent(JSON.stringify(rest))
         });
     }
 
-    // 3. Sincronizza lo stato globale di navbar.js
-    queue = formattedTracks;
+    // sincronizza la coda lato client
+    queue = formatted;
     currentIndex = 0;
 
-    // 4. Avvia la UI e il Playback (funzioni in navbar.js)
     showPlayer();
     loadCurrentSong();
     startPlayback();
 }
 
+// inzializza il button segui
 async function initFollowButton(artistId) {
     const btn = document.querySelector(".btn-outline");
     if (!btn) return;
 
     let isFollowing = false;
 
-    // 1. Stato iniziale
     try {
+        // verifica se l'utente segue l'artista
         const res = await fetch(`/progetto_php/api/check_follow.php?artist_id=${artistId}`);
         const data = await res.json();
 
         isFollowing = data.followed;
-
-        updateButton();
+        updateBtn();
     } catch (err) {
         console.error(err);
     }
 
-    // 2. Click toggle
+    // toggle follow
     btn.addEventListener("click", async () => {
-        if (!isLogged) {
+        if (!window.isLogged) {
             window.location.href = "/progetto_php/login.php";
             return;
         }
 
-        try {
-            const url = isFollowing
-                ? "/progetto_php/api/unfollow_artist.php"
-                : "/progetto_php/api/follow_artist.php";
+        const url = isFollowing
+            ? "/progetto_php/api/unfollow_artist.php" // url api unfollow
+            : "/progetto_php/api/follow_artist.php";  // url api follow
 
+        try {
+            // richiesta all'api opportuna
             const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -249,15 +327,15 @@ async function initFollowButton(artistId) {
 
             if (data.success || data.message) {
                 isFollowing = !isFollowing;
-                updateButton();
+                updateBtn();
             }
-
         } catch (err) {
             console.error(err);
         }
     });
 
-    function updateButton() {
+    // aggiorna il button
+    function updateBtn() {
         if (isFollowing) {
             btn.textContent = "Non seguire";
             btn.classList.add("active");

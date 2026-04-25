@@ -1,39 +1,48 @@
 <?php
+// api/delete_playlist.php
+// api per eliminare una playlist
+
 session_start();
 require "connection.php";
 
 header("Content-Type: application/json");
 
-// verifica login
+// verifica sessione
 if (!isset($_SESSION["user_id"])) {
-    http_response_code(401);
-    echo json_encode(["error" => "Non autenticato"]);
+    echo json_encode(["error" => "not_logged"]);
     exit;
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
+    echo json_encode(["error" => "invalid_method"]);
     exit;
 }
 
+// input dati
 $playlist_id = $_POST["playlist_id"] ?? null;
 $user_id = $_SESSION["user_id"];
 
+// 4validazione dati
 if (!$playlist_id) {
-    http_response_code(400);
-    echo json_encode(["error" => "ID mancante"]);
+    echo json_encode(["error" => "missing_id"]);
     exit;
 }
 
-// 🔒 sicurezza: elimina solo playlist dell’utente
-$query = "DELETE FROM playlist WHERE id = ? AND user_id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("ii", $playlist_id, $user_id);
+// elimina la playlist dal db
+$stmt = $conn->prepare("
+    DELETE FROM playlist 
+    WHERE id = ? AND user_id = ?
+");
 
-if ($stmt->execute()) {
+$stmt->bind_param("ii", $playlist_id, $user_id);
+$stmt->execute();
+
+$affected = $stmt->affected_rows;
+$stmt->close();
+
+if ($affected > 0) {
     echo json_encode(["success" => true]);
 } else {
-    http_response_code(500);
-    echo json_encode(["error" => "Errore eliminazione"]);
+    echo json_encode(["error" => "not_found"]);
 }
 ?>

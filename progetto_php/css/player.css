@@ -5,10 +5,6 @@ body.player-open .top-container {
     border-bottom-right-radius: 12px;
 }
 
-body.player-open .main-content {
-    margin-right: 25%;
-}
-
 .top-container {
     position: relative;
     width: 100%;

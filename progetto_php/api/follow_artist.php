@@ -1,52 +1,64 @@
 <?php
+// api/follow_artist.php
+// api che permette all'utente di seguire un artista
+
 session_start();
 require "connection.php";
 
-// 1. Verifica login
+header("Content-Type: application/json");
+
+// verifica sessione
 if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
+    echo json_encode(["error" => "not_logged"]);
     exit;
 }
 
-// 2. Verifica metodo POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(["error" => "Metodo non consentito"]);
+    echo json_encode(["error" => "invalid_method"]);
     exit;
 }
 
-// 3. Recupera artist_id (da Deezer)
+// input dati
+$user_id = $_SESSION["user_id"];
 $artist_id = $_POST["artist_id"] ?? null;
 
+// validazione dati
 if (!$artist_id) {
-    http_response_code(400);
-    echo json_encode(["error" => "Artist ID mancante"]);
+    echo json_encode(["error" => "missing_artist_id"]);
     exit;
 }
 
-$user_id = $_SESSION["user_id"];
+// verifica se l'utente segue già l'artista
+$stmt = $conn->prepare("
+    SELECT id 
+    FROM follow 
+    WHERE user_id = ? AND artist_id_api = ?
+");
 
-// 4. Controlla se già seguito
-$checkQuery = "SELECT id FROM follow WHERE user_id = ? AND artist_id_api = ?";
-$stmt = $conn->prepare($checkQuery);
 $stmt->bind_param("ii", $user_id, $artist_id);
 $stmt->execute();
-$result = $stmt->get_result();
 
-if ($result->num_rows > 0) {
-    echo json_encode(["message" => "Artista già seguito"]);
+$res = $stmt->get_result();
+
+if ($res->num_rows > 0) {
+    echo json_encode(["error" => "already_following"]);
     exit;
 }
 
-// 5. Inserisci follow
-$insertQuery = "INSERT INTO follow (user_id, artist_id_api) VALUES (?, ?)";
-$stmt = $conn->prepare($insertQuery);
-$stmt->bind_param("ii", $user_id, $artist_id);
+$stmt->close();
 
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Artista seguito"]);
-} else {
-    http_response_code(500);
-    echo json_encode(["error" => "Errore durante il follow"]);
-}
+// aggiungi il follow
+$stmt = $conn->prepare("
+    INSERT INTO follow (user_id, artist_id_api)
+    VALUES (?, ?)
+");
+
+$stmt->bind_param("ii", $user_id, $artist_id);
+$stmt->execute();
+
+$stmt->close();
+
+echo json_encode([
+    "success" => true
+]);
 ?>

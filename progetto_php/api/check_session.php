@@ -2,8 +2,8 @@
 // api/check_session.php
 // api per verificare la sessione dell'utente
 
-session_start(); // avvia una sessione
-header("Content-Type: application/json"); // risposta in fomato json
+session_start();
+header("Content-Type: application/json");
 
 // verifica se esiste una sessione chiamata user_id
 if (isset($_SESSION["user_id"])) {

@@ -1,15 +1,18 @@
 <?php
+// api/get_genre_data.php
+// api per ottenere dati di un genere (info + tracks + artists + albums)
+
 header("Content-Type: application/json");
 
-// Validazione input
+// input dati
 $genre_id = $_GET["genre_id"] ?? null;
 
 if (!$genre_id || !is_numeric($genre_id)) {
-    echo json_encode(["error" => "invalid genre_id"]);
+    echo json_encode(["error" => "invalid_genre_id"]);
     exit;
 }
 
-// 1. INFO GENERE
+// ottieni le info del genere dalle api di deezer
 $ch = curl_init("https://api.deezer.com/genre/$genre_id");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $genreRes = curl_exec($ch);
@@ -17,24 +20,21 @@ curl_close($ch);
 
 $genreData = json_decode($genreRes, true);
 
-$genreName = $genreData["name"] ?? "Genere sconosciuto";
+$genreName = $genreData["name"] ?? "unknown_genre";
 $genrePicture = $genreData["picture_xl"] ?? "";
 
-
-// 🔥 NORMALIZZAZIONE GENERE (FIX PRINCIPALE)
 $searchGenre = $genreName;
 
-// Caso: Hip-Hop/Rap → Hip-Hop
+// gestione generi con nome particolare tipo "Hip-Hop/Rap"
 if (strpos($searchGenre, "/") !== false) {
     $searchGenre = explode("/", $searchGenre)[0];
 }
 
-// Rimuove caratteri problematici
+// pulizia caratteri
 $searchGenre = str_replace("&", "", $searchGenre);
 $searchGenre = trim($searchGenre);
 
-
-// 2. TRACCE (più robuste)
+// ottieni i brani dalle api di deezer
 $ch = curl_init("https://api.deezer.com/search?q=$searchGenre&limit=25");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $resTracks = curl_exec($ch);
@@ -42,7 +42,7 @@ curl_close($ch);
 
 $tracksRaw = json_decode($resTracks, true)["data"] ?? [];
 
-// Fallback se vuoto
+// fallback se vuoto
 if (empty($tracksRaw)) {
     $ch = curl_init("https://api.deezer.com/search?q=" . urlencode($genreName) . "&limit=25");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -52,7 +52,7 @@ if (empty($tracksRaw)) {
     $tracksRaw = json_decode($resTracks, true)["data"] ?? [];
 }
 
-// Limite reale
+// limite finale
 $tracksRaw = array_slice($tracksRaw, 0, 10);
 
 $tracks = [];
@@ -65,12 +65,11 @@ foreach ($tracksRaw as $track) {
         "artist_id" => $track["artist"]["id"],
         "cover" => $track["album"]["cover_xl"],
         "duration" => $track["duration"],
-        "explicit" => $track["explicit_lyrics"]
+        "explicit" => $track["explicit_lyrics"] ?? false
     ];
 }
 
-
-// 3. ARTISTI
+// ottieni gli artisti dalle api di deezer
 $ch = curl_init("https://api.deezer.com/search/artist?q=$searchGenre&limit=25");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $resArtists = curl_exec($ch);
@@ -89,8 +88,6 @@ foreach ($artistsRaw as $artist) {
     ];
 }
 
-
-// 4. ALBUM (derivati dalle tracce)
 $albumsMap = [];
 
 foreach ($tracksRaw as $track) {
@@ -108,8 +105,6 @@ foreach ($tracksRaw as $track) {
 $albums = array_values($albumsMap);
 $albums = array_slice($albums, 0, 10);
 
-
-// RISPOSTA FINALE
 echo json_encode([
     "genre_name" => $genreName,
     "genre_picture" => $genrePicture,

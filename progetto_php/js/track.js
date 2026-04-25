@@ -1,56 +1,65 @@
+// js/track.js
+// file js per gestione pagina singolo
+
+// carica i dati nel body della pagina
 document.addEventListener("DOMContentLoaded", async () => {
     const trackId = document.body.dataset.trackId;
     if (!trackId) return;
 
-    try {
-        const response = await fetch(`/progetto_php/api/get_track.php?track_id=${trackId}`);
-        const track = await response.json();
-
-        if (track.id) {
-            renderTrackPage(track);
-        }
-    } catch (error) {
-        console.error("Errore nel caricamento brano:", error);
-    }
+    await loadTrack(trackId);
 });
 
-function renderTrackPage(track) {
+// ottieni i dati del brano dal db
+async function loadTrack(trackId) {
+    try {
+        const res = await fetch(`/progetto_php/api/get_track.php?track_id=${trackId}`);
+        const track = await res.json();
+
+        if (!track?.id) return;
+
+        renderTrack(track);
+    } catch (err) {
+        console.error("Errore load track:", err);
+    }
+}
+
+// renderizza il brano
+function renderTrack(track) {
     const container = document.querySelector("#single-track-container");
     const title = document.querySelector("#track-title");
     const cover = document.querySelector("#track-cover");
     const meta = document.querySelector("#track-meta");
 
-    // 1. Setup Header
-    cover.crossOrigin = "Anonymous";
+    if (!container || !title || !cover || !meta) return;
+
+    // header
+    title.textContent = track.title;
     cover.src = track.cover;
+    cover.crossOrigin = "Anonymous";
+
     cover.onload = () => {
         const colorThief = new ColorThief();
         const color = colorThief.getColor(cover);
-        applyAlbumGradient(color); // Usiamo la funzione già esistente in script.js
+
+        window.applyAlbumGradient?.(color);
     };
 
-    title.textContent = track.title;
-    setTimeout(() => {
-        const isMobile = window.innerWidth <= 768;
+    const year = track.release_date?.split("-")[0] || "—";
 
-        if (!isMobile) {
-            fitTitleToContainer(title, 148, 24);
-        } else {
-            title.style.fontSize = "28px";
-            title.style.whiteSpace = "normal";
-            title.style.letterSpacing = "0";
-        }
-    }, 0);
+    meta.innerHTML = `
+        <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">
+            ${track.artist}
+        </a>
+        • ${year}
+        • 1 brano • ${window.formatDuration(track.duration)}
+    `;
 
-    const year = track.release_date.split("-")[0];
-    meta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a> • ${year} • 1 brano, ${formatDuration(track.duration)}`;
-
-    // 2. Render riga singola (Stesso stile dell'album)
+    // track row
     container.innerHTML = "";
-    const trackRow = document.createElement("div");
-    trackRow.className = "track-row";
+    const row = document.createElement("div");
+    row.className = "track-row";
 
-    trackRow.innerHTML = `
+    row.innerHTML = `
         <div class="track-number">
             <span class="track-index">1</span>
             <svg class="track-hover-play" viewBox="0 0 16 16" width="16" height="16">
@@ -63,12 +72,14 @@ function renderTrackPage(track) {
                 <span class="track-title">${track.title}</span>
                 <span class="track-artist">
                     ${track.explicit ? `<span class="explicit-label">E</span>` : ""}
-                    <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">${track.artist}</a>
+                    <a href="/progetto_php/artist.php?artist_id=${track.artist_id}" class="artist-link">
+                        ${track.artist}
+                    </a>
                 </span>
             </div>
         </div>
 
-        <span class="track-rank">${formatPlays(track.rank)}</span>
+        <span class="track-rank">${window.formatPlays(track.rank)}</span>
 
         <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
             <svg viewBox="0 0 16 16" width="16" height="16">
@@ -77,7 +88,7 @@ function renderTrackPage(track) {
             </svg>
         </button>
 
-        <span class="track-duration">${formatDuration(track.duration)}</span>
+        <span class="track-duration">${window.formatDuration(track.duration)}</span>
 
         <button class="track-action-btn more-btn" data-id="${track.id}">
             <svg viewBox="0 0 16 16" width="16" height="16">
@@ -85,18 +96,19 @@ function renderTrackPage(track) {
             </svg>
         </button>
     `;
-    container.appendChild(trackRow);
 
-    trackRow.addEventListener("click", async (e) => {
-        // evita click sui bottoni interni
+    container.appendChild(row);
+
+    // play del brano
+    row.addEventListener("click", async (e) => {
         if (e.target.closest(".track-action-btn")) return;
 
-        if (!isLogged) {
+        if (!window.isLogged) {
             window.location.href = "/progetto_php/login.php";
             return;
         }
 
-        await startQueue({
+        await window.startQueue?.({
             id: track.id,
             title: track.title,
             artist: track.artist,
@@ -105,13 +117,14 @@ function renderTrackPage(track) {
         });
     });
 
-    document.querySelector(".main-play").addEventListener("click", async () => {
-        if (!isLogged) {
+    // play principale del singolo
+    document.querySelector(".main-play")?.addEventListener("click", async () => {
+        if (!window.isLogged) {
             window.location.href = "/progetto_php/login.php";
             return;
         }
 
-        await startQueue({
+        await window.startQueue?.({
             id: track.id,
             title: track.title,
             artist: track.artist,
@@ -121,36 +134,23 @@ function renderTrackPage(track) {
     });
 }
 
-async function addToPlaylist(songId, playlistId) {
-    const res = await fetch("/progetto_php/api/add_to_playlist.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `song_id=${songId}&playlist_id=${playlistId}`
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-        alert(data.error);
-    }
-}
-
-document.addEventListener("click", async (e) => {
+// gestione apertura modal playlist
+document.addEventListener("click", (e) => {
     const btn = e.target.closest(".add-playlist-btn, .add-to-playlist-main");
     if (!btn) return;
+
     e.stopPropagation();
 
-    if (!isLogged) {
+    if (!window.isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
 
     const trackId = document.body.dataset.trackId;
-    openPlaylistModal(trackId);
+    window.openPlaylistModal?.(trackId);
 });
 
+// chiusura modal cliccando fuori
 document.addEventListener("click", (e) => {
     const modal = document.getElementById("playlist-select-modal");
     if (!modal || modal.classList.contains("hidden")) return;
@@ -160,17 +160,15 @@ document.addEventListener("click", (e) => {
     }
 });
 
-document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".add-playlist-btn");
-    if (!btn) return;
+const trackTitle = document.getElementById("track-title");
 
-    e.stopPropagation();
+// observer per ridimensionare il titolo in base al container
+if (trackTitle) {
+    const observer = new ResizeObserver(() => {
+        if (window.innerWidth > 768) {
+            window.fitTitleToContainer?.(trackTitle, 140, 24);
+        }
+    });
 
-    if (!isLogged) {
-        window.location.href = "/progetto_php/login.php";
-        return;
-    }
-
-    const songId = btn.dataset.id;
-    openPlaylistModal(songId);
-});
+    observer.observe(trackTitle.parentElement);
+}

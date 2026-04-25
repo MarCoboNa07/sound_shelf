@@ -1,33 +1,38 @@
 // js/genre.js
+// file js per gestione pagina genere
 
+// esegui la funzione al caricamento della pagina
+document.addEventListener("DOMContentLoaded", () => {
+    loadGenreData();
+});
+
+// carica i generi
 async function loadGenreData() {
+    const genreId = document.body.dataset.genreId;
+    if (!genreId) return;
+
     try {
-        const genreId = document.body.dataset.genreId;
+        const res = await fetch(`/progetto_php/api/get_genre_data.php?genre_id=${genreId}`);
+        const data = await res.json();
 
-        const response = await fetch(`/progetto_php/api/get_genre_data.php?genre_id=${genreId}`);
-        const data = await response.json();
-
-        // Banner
         renderGenreBanner(data);
 
-        // Riusa le stesse funzioni della home
-        renderTrendingSongs(data.tracks || []);
-        renderTrendingArtists(data.artists || []);
-        renderTrendingAlbums(data.albums || []);
+        renderTrending("songs", data.tracks || []);
+        renderTrending("artists", data.artists || []);
+        renderTrending("albums", data.albums || []);
 
-        // Inizializza caroselli
         initTrendingCarousel("songs");
         initTrendingCarousel("artists");
         initTrendingCarousel("albums");
-
     } catch (err) {
-        console.error(err);
+        console.error("Errore loadGenreData:", err);
     }
 }
 
-// Banner del genere
+// renderizza il banner del genere
 function renderGenreBanner(data) {
-    const banner = document.querySelector("#genre-banner");
+    const banner = document.getElementById("genre-banner");
+    if (!banner) return;
 
     banner.innerHTML = `
         <div class="genre-banner-content">
@@ -36,11 +41,3 @@ function renderGenreBanner(data) {
         </div>
     `;
 }
-
-// IMPORTANTE: queste funzioni NON le riscrivi
-// 👉 includi home.js anche in genre.php
-// oppure copiale identiche
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadGenreData();
-});

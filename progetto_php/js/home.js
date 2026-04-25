@@ -1,201 +1,135 @@
 // js/home.js
 // file javascript per la pagina home
 
-// funzione per caricare i dati musicali di tendenza
+// crea elemento in modo sicuro
+function createElement(tag, className, html = "") {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (html) el.innerHTML = html;
+    return el;
+}
+
+// carica brani, album e artisti in tendenza
 async function loadTrending() {
     try {
-        const response = await fetch("/progetto_php/api/get_trending_data.php");
-        const data = await response.json();
+        const res = await fetch("/progetto_php/api/get_trending_data.php");
+        const data = await res.json();
 
-        renderTrendingSongs(data.tracks || []);
-        renderTrendingArtists(data.artists || []);
-        renderTrendingAlbums(data.albums || []);
+        renderTrending("songs", data.tracks);
+        renderTrending("artists", data.artists);
+        renderTrending("albums", data.albums);
 
-        // Chiama initCarousel con gli id delle sezioni
-        initCarousel("trending-carousel-songs", "songs");
-        initCarousel("trending-carousel-artists", "artists");
-        initCarousel("trending-carousel-albums", "albums");
+        initCarousels();
     } catch (err) {
-        console.error(err);
+        console.error("Errore loadTrending:", err);
     }
 }
 
-// funzione per renderizzare i brani in tendenza
-function renderTrendingSongs(tracks) {
-    const container = document.querySelector("#trending-carousel-songs");
-    container.innerHTML = "";
+// funzione per renderizzare brani, album e artisti in tendenza
+function renderTrending(type, items = []) {
+    const container = document.getElementById(`trending-carousel-${type}`);
+    if (!container) return;
 
-    tracks.forEach(item => {
-        // Creiamo la card direttamente come elemento <a>
-        const card = document.createElement("a");
-        card.classList.add("trending-card");
+    const fragment = document.createDocumentFragment();
 
-        // L'intera card punta alla pagina del brano
-        card.href = `/progetto_php/track.php?track_id=${item.id}`;
-
-        let subtitle = `${item.explicit ? '<span class="explicit-label">E</span> ' : ''}${item.artist}`;
-
-        card.innerHTML = `
-            <div class="trending-cover-wrapper">
-                <img src="${item.cover}" alt="${item.title}">
-                
-                <div class="trending-play play-btn"
-                    data-type="song"
-                    data-id="${item.id}"
-                    data-title="${item.title}"
-                    data-artist="${item.artist}"
-                    data-cover="${item.cover}"
-                    data-duration="${item.duration}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
-                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="trending-info">
-                <span class="trending-title">${item.title}</span>
-                <a href="/progetto_php/artist.php?artist_id=${item.artist_id}" class="trending-artist">${subtitle}</a>
-            </div>
-        `;
-
-        // Impedisce al link della card di attivarsi se clicchi sul pulsante Play
-        const playBtn = card.querySelector(".play-btn");
-        playBtn.addEventListener("click", (e) => {
-            e.preventDefault();  // Blocca la navigazione del tag <a> (la card)
-        });
-
-        container.appendChild(card);
+    items.forEach(item => {
+        const card = createTrendingCard(type, item);
+        fragment.appendChild(card);
     });
+
+    container.innerHTML = "";
+    container.appendChild(fragment);
 }
 
-// funzione per renderizzare gli artisti in tendenza
-function renderTrendingArtists(artists) {
-    const container = document.querySelector("#trending-carousel-artists");
-    container.innerHTML = "";
+// funzione per creare le card per mostrare la musica in tendenza
+function createTrendingCard(type, item) {
+    const card = document.createElement("a");
+    card.className = `trending-card ${type === "artists" ? "artist" : ""}`;
 
-    // ciclo foreach per scorrere l'array degli artisti in tendenza
-    artists.forEach(item => {
-        const card = document.createElement("a");
-        card.href = `/progetto_php/artist.php?artist_id=${item.id}`;
-        card.classList.add("trending-card", "artist");
+    // configurazione card
+    let config = {
+        href: "#",
+        image: "",
+        title: "",
+        subtitle: "",
+        playData: ""
+    };
 
-        let image = item.picture;
-        let title = item.name;
-        let subtitle = "Artista";
+    // card brano
+    if (type === "songs") {
+        config = {
+            href: `/progetto_php/track.php?track_id=${item.id}`,
+            image: item.cover,
+            title: item.title,
+            subtitle: `${item.explicit ? '<span class="explicit-label">E</span> ' : ''}${item.artist}`,
+            playData: `
+                data-type="song"
+                data-id="${item.id}"
+                data-title="${item.title}"
+                data-artist="${item.artist}"
+                data-cover="${item.cover}"
+                data-duration="${item.duration}"
+            `
+        };
+    }
 
-        let playButton = `
-            <div class="trending-play play-btn"
-                data-type="artist"
-                data-id="${item.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
-                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                </svg>
-            </div>
-        `;
+    // card artista
+    if (type === "artists") {
+        config = {
+            href: `/progetto_php/artist.php?artist_id=${item.id}`,
+            image: item.picture,
+            title: item.name,
+            subtitle: "Artista",
+            playData: `data-type="artist" data-id="${item.id}"`
+        };
+    }
 
-        card.innerHTML = `
-            <div class="trending-cover-wrapper">
-                <img src="${image}" alt="${title}">
-                ${playButton}
-            </div>
-            <div class="trending-info">
-                <span class="trending-title">${title}</span>
-                <span class="trending-artist-label">Artista</span>
-            </div>
-        `;
-
-        container.appendChild(card);
-    });
-}
-
-// funzione per renderizzare gli album in tendenza
-function renderTrendingAlbums(albums) {
-    const container = document.querySelector("#trending-carousel-albums");
-    container.innerHTML = "";
-
-    // ciclo foreach per scorrere l'array degli album in tendenza
-    albums.forEach(item => {
-        const card = document.createElement("a");
-        card.classList.add("trending-card");
-        card.href = `/progetto_php/album.php?album_id=${item.id}`;
-
-        let image = item.cover;
-        let title = item.title;
-        let subtitle = item.artist;
-
-        let playButton = `
-            <div class="trending-play play-btn"
+    // card album
+    if (type === "albums") {
+        config = {
+            href: `/progetto_php/album.php?album_id=${item.id}`,
+            image: item.cover,
+            title: item.title,
+            subtitle: item.artist,
+            playData: `
                 data-type="album"
                 data-id="${item.id}"
                 data-title="${item.title}"
                 data-artist="${item.artist}"
-                data-cover="${item.cover}">
+                data-cover="${item.cover}"
+            `
+        };
+    }
+
+    card.href = config.href;
+    card.innerHTML = `
+        <div class="trending-cover-wrapper">
+            <img src="${config.image}" alt="${config.title}">
+            <div class="trending-play play-btn" ${config.playData}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
                     <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
                 </svg>
             </div>
-        `;
-
-        card.innerHTML = `
-            <div class="trending-cover-wrapper">
-                <img src="${image}" alt="${title}">
-                ${playButton}
-            </div>
-            <div class="trending-info">
-                <a href=${`/progetto_php/album.php?album_id=${item.id}`} class="trending-title">${title}</a>
-                <a href="/progetto_php/artist.php?artist_id=${item.artist_id}" class="trending-artist">${subtitle}</a>
-            </div>
-        `;
-
-        container.appendChild(card);
-    });
+        </div>
+        <div class="trending-info">
+            <span class="trending-title">${config.title}</span>
+            <span class="trending-artist">${config.subtitle}</span>
+        </div>
+    `;
+    return card;
 }
 
-// funzione per inizializzare i caroselli
-function initTrendingCarousel(type) {
-    const carousel = document.querySelector(`#trending-carousel-${type}`);
-    const next = document.querySelector(`.next-trending-${type}`);
-    const prev = document.querySelector(`.prev-trending-${type}`);
+// funzione per il play
+document.addEventListener("click", (e) => {
+    const playBtn = e.target.closest(".play-btn");
+    if (!playBtn) return;
 
-    // verifica che gli elementi html richiesti siano disponibili
-    if (!carousel || !next || !prev) {
-        return;
-    }
+    e.preventDefault();
+    e.stopPropagation();
+});
 
-    // funzione per scorrere in avanti il carosello
-    next.addEventListener("click", () => {
-        const card = carousel.querySelector(".trending-card");
-
-        // verifica l'esistenza della card del carosello
-        if (!card) {
-            return;
-        }
-
-        const scrollAmount = card.offsetWidth + 18; // quanto si devono spostare le card
-        carousel.scrollBy({ // scrolla il carosello
-            left: scrollAmount * 3,
-            behavior: "smooth"
-        });
-    });
-
-    // funzione per scorrere indietro il carosello
-    prev.addEventListener("click", () => {
-        const card = carousel.querySelector(".trending-card");
-
-        // verifica l'esistenza della card del carosello
-        if (!card) {
-            return;
-        }
-
-        const scrollAmount = card.offsetWidth + 18; // quanto si devono spostare le card
-        carousel.scrollBy({ // scrolla il carosello
-            left: -scrollAmount * 3,
-            behavior: "smooth"
-        });
-    });
-}
-
+// esegui la funzione al caricamento della pagina
 document.addEventListener("DOMContentLoaded", () => {
-    // Se NON siamo nella pagina genre, carica trending
     if (!document.body.dataset.genreId) {
         loadTrending();
     }

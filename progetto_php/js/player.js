@@ -1,15 +1,7 @@
 // js/player.js
-// file javascript per il player
+// file js per la gestione del player
 
-// button play/pausa sul player
-const playIcon = document.querySelector(".play-icon");
-const pauseIcon = document.querySelector(".pause-icon");
-
-// collegamento dei button play/pausa alle relative funzioni
-playIcon.addEventListener("click", togglePlayPause);
-pauseIcon.addEventListener("click", togglePlayPause);
-
-// variabili per gestire lo stato del player
+// gestione stati
 let queue = [];
 let currentIndex = -1;
 let isPlaying = false;
@@ -17,132 +9,81 @@ let interval = null;
 let currentTime = 0;
 let totalDuration = 0;
 
-// button per skippare canzone o tornare indietro
+// elementi html del player
+const player = document.querySelector(".player");
+const playBtn = document.querySelector(".play-icon");
+const pauseBtn = document.querySelector(".pause-icon");
 const nextBtn = document.querySelector(".next-icon");
 const prevBtn = document.querySelector(".prev-icon");
 
-nextBtn.addEventListener("click", nextSong);
-prevBtn.addEventListener("click", prevSong);
+// inizializza gli eventi del player
+function initPlayer() {
+    playBtn.addEventListener("click", togglePlayPause);
+    pauseBtn.addEventListener("click", togglePlayPause);
+    nextBtn.addEventListener("click", nextSong);
+    prevBtn.addEventListener("click", prevSong);
+}
 
-// funzione per mostrare il player
+// mostra il player
 function showPlayer() {
-    document.querySelector(".player").classList.add("active-player");
+    player.classList.add("active-player");
     document.body.classList.add("player-open");
-
-    setTimeout(resizeAlbumTitle, 310);
 }
 
-// funzioner per nascondere il player
+// nascondi il player
 function hidePlayer() {
-    document.querySelector(".player").classList.remove("active-player");
+    player.classList.remove("active-player");
     document.body.classList.remove("player-open");
-
-    setTimeout(resizeAlbumTitle, 310);
 }
 
-// funzione per inizializzare la progress bar (time line)
-function initProgressBarControls() {
-    const progressBar = document.querySelector("#progress-bar");
-    const dot = document.querySelector("#progress-dot");
+// carica il brano in riporduzione
+function loadCurrentSong() {
+    const song = queue[currentIndex];
+    if (!song) return;
 
-    let isDragging = false; // varibile per la gestione del drag (scorrimento)
+    const cover = document.querySelector(".song img");
+    const title = document.querySelector(".song-title");
+    const artist = document.querySelector(".song-artist");
 
-    // funzione per saltare ad un punto specifico della canzone
-    function seek(e) {
-        const rect = progressBar.getBoundingClientRect(); // prendi la posizione del mouse
-        let x = e.clientX - rect.left; // calcola la posizione sulla barra
-        x = Math.max(0, Math.min(x, rect.width)); // limita il valore tra 0 e larghezza della barra
+    if (cover) cover.src = song.cover || "";
+    if (title) title.textContent = song.title || "";
+    if (artist) artist.textContent = song.artist || "";
 
-        const percent = x / rect.width; // calcola la percentuale
-        currentTime = Math.round(percent * totalDuration); // aggiorna il tempo
-        updateProgressUI();
-    }
+    totalDuration = song.duration || 0;
+    currentTime = 0;
 
-    // salta al punto cliccato sulla barra
-    progressBar.addEventListener("click", (e) => {
-        seek(e);
-    });
+    updateProgressUI();
+}
 
-    // funzione per trascinare il pallino sulla barra
-    dot.addEventListener("mousedown", () => {
-        isDragging = true;
-        clearInterval(interval);
-    });
+// playback del brano
+function startPlayback() {
+    stopPlayback();
 
-    // funzione per saltare al punto in cui viene rilasciato il pallino della barra
-    document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        seek(e);
-    });
+    if (!queue[currentIndex]) return;
 
-    // funzione per terminare il drag
-    document.addEventListener("mouseup", () => {
-        if (!isDragging) return;
+    isPlaying = true;
+    togglePlayUI(true);
 
-        isDragging = false;
-
-        if (isPlaying) {
-            startPlayback(); // riprendi dal canzone dal nuovo punto
+    // verifica ogni secondo se il brano è terminato
+    interval = setInterval(() => {
+        if (currentTime < totalDuration) {
+            currentTime++;
+            updateProgressUI();
+        } else {
+            nextSong();
         }
-    });
+    }, 1000);
 }
 
-// funzione per aggiornare la progress bar
-function updateProgressUI() {
-    const progress = document.querySelector("#progress");
-    const dot = document.querySelector("#progress-dot");
-    const currentTimeEl = document.querySelector("#current-time");
-    const totalTimeEl = document.querySelector("#total-time");
-    const mobileProgress = document.querySelector("#mobile-progress");
-
-    const percent = totalDuration ? (currentTime / totalDuration) * 100 : 0;
-
-    // calcola la percentuale desktop
-    progress.style.width = percent + "%";
-    dot.style.left = percent + "%";
-
-    // calcola la percentuale mobile👇
-    if (mobileProgress) {
-        mobileProgress.style.width = percent + "%";
-    }
-
-    // formatta il nuovo intervallo di tempo in minuti e secondi
-    currentTimeEl.textContent = formatDuration(currentTime);
-    totalTimeEl.textContent = formatDuration(totalDuration);
-}
-
-// funzione per mettere in pausa un brano
-function pauseSong() {
-    clearInterval(interval); // ripulisci l'intervallo
+// termina il playback
+function stopPlayback() {
+    clearInterval(interval);
     interval = null;
-    isPlaying = false; // metti in pausa il brano
-
-    // cambia il pulsante in play
-    playIcon.style.display = "block";
-    pauseIcon.style.display = "none";
 }
 
-
-// funzione per riprendere riproduzione di un brano
-function resumeSong() {
-    if (!queue[currentIndex]) { // verifica se il brano non è in coda
-        return;
-    }
-
-    isPlaying = true; // metti in riporduzione il brano
-
-    // cambia il pulsante in pausa
-    playIcon.style.display = "none";
-    pauseIcon.style.display = "block";
-
-    startPlayback(); // avvia la riproduzuone
-}
-
-// funzione met mettere in play/pausa la canzone
+// play del brano
 function togglePlayPause() {
-    if (!queue.length) { // nessuna canzone caricata in coda
-        return;
-    }
+    if (!queue.length) return;
 
     if (isPlaying) {
         pauseSong();
@@ -151,53 +92,253 @@ function togglePlayPause() {
     }
 }
 
-// funzione saltare al brano successivo
+// pausa del brano
+function pauseSong() {
+    isPlaying = false;
+    stopPlayback();
+    togglePlayUI(false);
+}
+
+// riprendi la riproduzione dal punto di interruzione
+function resumeSong() {
+    if (currentIndex < 0) return;
+
+    isPlaying = true;
+    togglePlayUI(true);
+    startPlayback();
+}
+
+// cambia il button da play a pausa e viceversa
+function togglePlayUI(state) {
+    playBtn.style.display = state ? "none" : "block";
+    pauseBtn.style.display = state ? "block" : "none";
+}
+
+// skip al brano successivo
 async function nextSong() {
-    if (currentIndex < queue.length - 1) { // verifica se esiste un brano in coda
-        currentIndex++; // passa al brano successivo
+    if (currentIndex < queue.length - 1) {
+        currentIndex++;
 
-         // 🔥 sync DB
-        await fetch("/progetto_php/api/update_queue_position.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `position=${currentIndex}`
-        });
+        await syncQueuePosition(currentIndex);
 
-        loadCurrentSong(); // carica il brano
-        startPlayback(); // riproduci il brano
+        loadCurrentSong();
+        startPlayback();
     } else {
-        pauseSong(); // metti in pausa il brano
-        currentIndex = queue.length ? queue.length - 1 : -1; // resta sull'ultima canzone se presente
-        hidePlayer(); // nascondi il player
+        pauseSong();
+        hidePlayer();
     }
 }
 
-// funzione per tornare al brano precedente
+// torna al brano precedente
 async function prevSong() {
-    if (currentIndex > 0) { // verifica se esiste un brano prima
-        currentIndex--; // passa la brano precedente
+    if (currentIndex > 0) {
+        currentIndex--;
 
-        // 🔥 sync DB
-        await fetch("/progetto_php/api/update_queue_position.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `position=${currentIndex}`
-        });
+        await syncQueuePosition(currentIndex);
 
-        loadCurrentSong(); // carica il brano
-        startPlayback(); // riporduci il brano
+        loadCurrentSong();
+        startPlayback();
     } else {
         currentTime = 0;
         updateProgressUI();
     }
 }
 
-function resizeAlbumTitle() {
-    const title =
-        document.querySelector("#album-title") ||
-        document.querySelector("#track-title");
-
-    if (title) {
-        fitTitleToContainer(title, 148, 24);
+// sincronizza la coda del client con la coda nel db
+async function syncQueuePosition(position) {
+    try {
+        await fetch("/progetto_php/api/update_queue_position.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `position=${position}`
+        });
+    } catch (err) {
+        console.error("Errore sync queue position:", err);
     }
 }
+
+// avvia la coda di riproduzione dei brani
+async function startQueue(song) {
+    try {
+        await fetch("/progetto_php/api/add_to_queue.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `song_id=${song.id}`
+        });
+
+        queue = [song];
+        currentIndex = 0;
+
+        showPlayer();
+        loadCurrentSong();
+        startPlayback();
+        prefetchRelatedTracks(song.id);
+    } catch (err) {
+        console.error("Errore startQueue:", err);
+    }
+}
+
+// avvia la coda di riproduzione degli album
+async function startAlbumQueue(albumId) {
+    try {
+        const res = await fetch(`/progetto_php/api/get_album_tracks.php?album_id=${albumId}`);
+        const data = await res.json();
+
+        if (!data.tracks?.length) return;
+
+        await fetch("/progetto_php/api/add_to_queue.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `song_id=${data.tracks[0].id}`
+        });
+
+        queue = data.tracks.map(t => ({
+            id: t.id,
+            title: t.title,
+            artist: t.artist,
+            cover: t.cover,
+            duration: t.duration
+        }));
+
+        currentIndex = 0;
+
+        showPlayer();
+        loadCurrentSong();
+        startPlayback();
+    } catch (err) {
+        console.error("Errore album queue:", err);
+    }
+}
+
+// avvia la coda di riproduzione degli artisti
+async function startArtistQueue(artistId) {
+    try {
+        const res = await fetch(`/progetto_php/api/get_artist.php?artist_id=${artistId}`);
+        const data = await res.json();
+
+        const tracks = data.topTracks || [];
+        if (!tracks.length) return;
+
+        queue = tracks.map(t => ({
+            id: t.id,
+            title: t.title,
+            artist: t.artist.name,
+            cover: t.album.cover_medium,
+            duration: t.duration
+        }));
+
+        currentIndex = 0;
+
+        showPlayer();
+        loadCurrentSong();
+        startPlayback();
+    } catch (err) {
+        console.error("Errore artist queue:", err);
+    }
+}
+
+// ottieni i brani correlati
+async function prefetchRelatedTracks(songId) {
+    try {
+        const res = await fetch(`/progetto_php/api/get_related_tracks.php?song_id=${songId}`);
+        const data = await res.json();
+
+        if (!data.related?.length) return;
+
+        // verifica se sono stati trovati brani correlatie e aggiungili in coda
+        const existing = new Set(queue.map(s => s.id));
+        const newTracks = data.related
+            .filter(t => !existing.has(t.id))
+            .map(t => ({
+                id: t.id,
+                title: t.title,
+                artist: t.artist,
+                cover: t.cover,
+                duration: t.duration
+            }));
+        queue.push(...newTracks);
+
+        await fetch("/progetto_php/api/add_related_tracks.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "tracks=" + encodeURIComponent(JSON.stringify(newTracks))
+        });
+    } catch (err) {
+        console.error("Errore prefetch:", err);
+    }
+}
+
+// aggiorna la progressbar sul player
+function updateProgressUI() {
+    const percent = totalDuration ? (currentTime / totalDuration) * 100 : 0;
+
+    document.querySelector("#progress").style.width = percent + "%";
+    document.querySelector("#progress-dot").style.left = percent + "%";
+
+    document.querySelector("#current-time").textContent = formatDuration(currentTime);
+    document.querySelector("#total-time").textContent = formatDuration(totalDuration);
+
+    const mobile = document.querySelector("#mobile-progress");
+    if (mobile) mobile.style.width = percent + "%";
+}
+
+// inizializza la progressbar
+function initProgressBarControls() {
+    const bar = document.querySelector("#progress-bar");
+    const dot = document.querySelector("#progress-dot");
+
+    let dragging = false;
+
+    function seek(e) {
+        const rect = bar.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        x = Math.max(0, Math.min(x, rect.width));
+
+        const percent = x / rect.width;
+        currentTime = Math.round(percent * totalDuration);
+
+        updateProgressUI();
+    }
+
+    bar?.addEventListener("click", seek);
+
+    dot?.addEventListener("mousedown", () => {
+        dragging = true;
+        stopPlayback();
+    });
+
+    document.addEventListener("mousemove", e => {
+        if (!dragging) return;
+        seek(e);
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (!dragging) return;
+
+        dragging = false;
+        if (isPlaying) startPlayback();
+    });
+}
+
+// esegui la funzione al caricamento della pagina
+document.addEventListener("DOMContentLoaded", () => {
+    initPlayer();
+    initProgressBarControls();
+});
+
+// funzione globale per caricare la coda
+window.playerLoadQueue = function (queueData, index = 0) {
+    if (!Array.isArray(queueData) || queueData.length === 0) return;
+
+    queue = queueData;
+    currentIndex = index;
+
+    const song = queue[currentIndex];
+    if (!song) return;
+
+    showPlayer();
+    loadCurrentSong();
+    startPlayback();
+};

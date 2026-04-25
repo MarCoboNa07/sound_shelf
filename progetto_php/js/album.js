@@ -1,20 +1,31 @@
+// js/album.js
+// file js per gestione pagina album
+
+// carica i dati nel body della pagina
 document.addEventListener("DOMContentLoaded", async () => {
     const albumId = document.body.dataset.albumId;
     if (!albumId) return;
 
-    try {
-        const response = await fetch(`/progetto_php/api/get_album_tracks.php?album_id=${albumId}`);
-        const data = await response.json();
-
-        if (data.tracks && data.tracks.length > 0) {
-            renderAlbumPage(data);
-        }
-    } catch (error) {
-        console.error("Errore nel caricamento album:", error);
-    }
+    await loadAlbum(albumId);
 });
 
-function renderAlbumPage(data) {
+// ottieni i dati dell'album dal db
+async function loadAlbum(albumId) {
+    try {
+        const res = await fetch(`/progetto_php/api/get_album_tracks.php?album_id=${albumId}`);
+        const data = await res.json();
+
+        if (!data?.tracks?.length) return;
+
+        renderAlbum(data);
+        setupAlbumEvents(data);
+    } catch (err) {
+        console.error("Errore load album:", err);
+    }
+}
+
+// renderizza l'album
+function renderAlbum(data) {
     const { album_title, album_year, album_cover, tracks } = data;
 
     const tracksContainer = document.querySelector("#tracks-container");
@@ -22,46 +33,40 @@ function renderAlbumPage(data) {
     const albumCover = document.querySelector("#album-cover");
     const albumMeta = document.querySelector("#album-meta");
 
+    if (!tracksContainer) return;
+
+    // header
+    albumTitle.textContent = album_title || "Album";
+    albumCover.src = album_cover;
     albumCover.crossOrigin = "Anonymous";
+
     albumCover.onload = () => {
         const colorThief = new ColorThief();
         const color = colorThief.getColor(albumCover);
-
-        applyAlbumGradient(color);
+        window.applyAlbumGradient(color);
     };
 
-    if (!tracks || tracks.length === 0) return;
-
-    albumTitle.textContent = album_title || "Album";
-    albumCover.src = album_cover;
-    const artistName = tracks[0].artist || "Artista sconosciuto";
-    const artistId = tracks[0].artist_id || "#";
+    const artistName = tracks[0]?.artist || "Artista sconosciuto";
+    const artistId = tracks[0]?.artist_id || "#";
     const year = album_year || "—";
-    const trackCount = tracks.length;
 
-    setTimeout(() => {
-        if (window.innerWidth > 768) {
-            fitTitleToContainer(albumTitle, 148, 24);
-        } else {
-            title.style.fontSize = "28px";
-            title.style.whiteSpace = "normal";
-            title.style.letterSpacing = "0";
-        }
-    }, 0);
+    const totalSeconds = tracks.reduce((sum, t) => sum + (parseInt(t.duration) || 0), 0);
 
-    const totalSeconds = tracks.reduce((sum, track) => {
-        return sum + (parseInt(track.duration) || 0);
-    }, 0);
-    const totalDuration = formatDuration(totalSeconds);
+    albumMeta.innerHTML = `
+        <a href="/progetto_php/artist.php?artist_id=${artistId}" class="artist-link">
+            ${artistName}
+        </a>
+        • ${year}
+        • ${tracks.length} brani • ${window.formatDuration(totalSeconds)}
+    `;
 
-    albumMeta.innerHTML = `<a href="/progetto_php/artist.php?artist_id=${artistId}" class="artist-link">${artistName}</a> • ${year} • ${trackCount} brani, ${totalDuration}`;
+    // tracklist
     tracksContainer.innerHTML = "";
-
     tracks.forEach((track, index) => {
-        const trackRow = document.createElement("div");
-        trackRow.className = "track-row";
+        const row = document.createElement("div");
+        row.className = "track-row";
 
-        trackRow.innerHTML = `
+        row.innerHTML = `
             <div class="track-number">
                 <span class="track-index">${index + 1}</span>
                 <svg class="track-hover-play" viewBox="0 0 16 16" width="16" height="16">
@@ -79,7 +84,7 @@ function renderAlbumPage(data) {
                 </div>
             </div>
 
-            <span class="track-rank">${formatPlays(track.rank)}</span>
+            <span class="track-rank">${window.formatPlays(track.rank)}</span>
 
             <button class="track-action-btn add-playlist-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -88,7 +93,7 @@ function renderAlbumPage(data) {
                 </svg>
             </button>
 
-            <span class="track-duration">${formatDuration(track.duration)}</span>
+            <span class="track-duration">${window.formatDuration(track.duration)}</span>
 
             <button class="track-action-btn more-btn" data-id="${track.id}">
                 <svg viewBox="0 0 16 16" width="16" height="16">
@@ -97,12 +102,11 @@ function renderAlbumPage(data) {
             </button>
         `;
 
-        tracksContainer.appendChild(trackRow);
-
-        trackRow.addEventListener("click", async (e) => {
+        // play del brano
+        row.addEventListener("click", async (e) => {
             if (e.target.closest(".track-action-btn")) return;
 
-            if (!isLogged) {
+            if (!window.isLogged) {
                 window.location.href = "/progetto_php/login.php";
                 return;
             }
@@ -114,85 +118,58 @@ function renderAlbumPage(data) {
                 cover: track.cover,
                 duration: parseInt(track.duration)
             };
-
-            await startQueue(song);
+            await window.startQueue?.(song);
         });
-    });
 
-    document.querySelector(".main-play").addEventListener("click", async (e) => {
-        const albumId = e.currentTarget.dataset.id;
-
-        if (!albumId) return;
-        await startAlbumQueue(albumId);
+        tracksContainer.appendChild(row);
     });
 }
 
-function applyAlbumGradient([r, g, b]) {
-    // calcolo luminanza (per capire se è chiaro)
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+// inizializza gli eventi dell'album
+function setupAlbumEvents(data) {
+    const playBtn = document.querySelector(".main-play");
 
-    let safeR = r;
-    let safeG = g;
-    let safeB = b;
+    if (playBtn) {
+        playBtn.addEventListener("click", async () => {
+            if (!window.isLogged) {
+                window.location.href = "/progetto_php/login.php";
+                return;
+            }
 
-    // se troppo chiaro → scurisci
-    if (luminance > 0.6) {
-        safeR *= 0.5;
-        safeG *= 0.5;
-        safeB *= 0.5;
+            await window.startAlbumQueue?.(playBtn.dataset.id);
+        });
     }
-
-    // clamp valori
-    safeR = Math.floor(Math.min(255, safeR));
-    safeG = Math.floor(Math.min(255, safeG));
-    safeB = Math.floor(Math.min(255, safeB));
-
-    const darker = `rgb(${Math.floor(safeR * 0.5)}, ${Math.floor(safeG * 0.5)}, ${Math.floor(safeB * 0.5)})`;
-
-    const container = document.querySelector(".main-content");
-
-    container.style.background = `
-        linear-gradient(
-            to bottom,
-            rgb(${safeR}, ${safeG}, ${safeB}) 0%,
-            ${darker} 40%,
-            #121212 100%
-        )
-    `;
 }
 
-function formatPlays(num) {
-    if (!num) return "—";
-    return num.toLocaleString("it-IT");
-}
-
-document.addEventListener("click", async (e) => {
+// play principale dell'album
+document.addEventListener("click", (e) => {
     const btn = e.target.closest(".add-playlist-btn");
     if (!btn) return;
 
-    if (!isLogged) {
+    if (!window.isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
 
-    const songId = btn.dataset.id;
-    openPlaylistModal(songId);
+    window.openPlaylistModal?.(btn.dataset.id);
 });
 
+// aggiungi l'album alla libreria
 document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".add-to-playlist-main");
     if (!btn) return;
 
-    if (!isLogged) {
+    if (!window.isLogged) {
         window.location.href = "/progetto_php/login.php";
         return;
     }
 
-    if (btn.classList.contains("added")) return;
-
     const albumId = document.body.dataset.albumId;
+    if (!albumId) return;
 
     try {
+        btn.disabled = true;
+
         const res = await fetch("/progetto_php/api/create_playlist_from_album.php", {
             method: "POST",
             headers: {
@@ -204,17 +181,27 @@ document.addEventListener("click", async (e) => {
         const data = await res.json();
 
         if (!data.success) {
-            alert(data.error || "Errore creazione playlist");
-            return;
+            throw new Error(data.error || "Errore creazione playlist");
         }
 
-        btn.classList.add("added");
-        btn.innerHTML = `
-            <svg width="16" height="16" fill="currentColor">
-                <path d="M13.485 1.929a.75.75 0 0 1 1.06 1.06l-7.07 7.07-3.536-3.535a.75.75 0 1 1 1.06-1.06l2.476 2.475 6.01-6.01z"/>
-            </svg>
-        `;
+        btn.style.transform = "scale(1.1)";
+        setTimeout(() => (btn.style.transform = ""), 150);
     } catch (err) {
         console.error(err);
+    } finally {
+        btn.disabled = false;
     }
 });
+
+const albumTitle = document.getElementById("album-title");
+
+// observer per ridimensionare il titolo in base al container
+if (albumTitle) {
+    const observer = new ResizeObserver(() => {
+        if (window.innerWidth > 768) {
+            window.fitTitleToContainer?.(albumTitle, 140, 24);
+        }
+    });
+
+    observer.observe(albumTitle.parentElement);
+}

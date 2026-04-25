@@ -14,7 +14,7 @@ $track_id = $_GET["track_id"] ?? null;
     <link rel="stylesheet" href="./css/album.css">
     <link rel="stylesheet" href="./css/navbar.css">
     <link rel="stylesheet" href="./css/player.css">
-    <title>Brano</title>
+    <title>Sound Shelf | Brano</title>
 </head>
 
 <body data-track-id="<?php echo htmlspecialchars($track_id); ?>">
