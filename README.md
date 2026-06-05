@@ -10,7 +10,7 @@ Descrizione entità
 
 - Queue: Rappresenta la sessione di ascolto dell'utente, ovvero la coda dei brani. La coda è unica per ogni utente.
 
-- Artist (API) e Song (API): Sono entità esterne. Non fanno parte fisicamente del database locale, ma l'applicazione memorizza gli ID univoci per ottenere i metadati in tempo reale tramite le API di Deezer.
+- Artist (API) e Song (API): Rappresentano entità concettuali esterne al database locale, identificate tramite gli ID univoci forniti dalle API di Deezer.
 
 
 
@@ -18,13 +18,13 @@ Descrizione entità
 Relazioni e Cardinalità
 - Create (User - Playlist): Cardinalità (0,N) lato User e (1,1) lato Playlist. Un utente può non avere playlist oppure può crearne molte, mentre una playlist appartiene ad un solo utente.
 
-- Linked (User - Queue): Cardinalità (1,1) da entrami i lati. Ogni utente possiede una sola coda di riproduzione, garantendo la persistenza della sessione, infatti una coda appartiene ad un solo utente.
+- Linked (User - Queue): Cardinalità (1,1) da entrambi i lati. Ogni utente possiede una sola coda di riproduzione, garantendo la persistenza della sessione, infatti una coda appartiene ad un solo utente.
 
 - Follow (User - Artist): Cardinalità (0,N) da entrambi i lati. Un utente può seguire più artisti e un artista può essere seguito da più utenti. Allo stesso tempo un utente può non seguire nessun artista e un artista può essere seguito da nessun utente.
 
 - PlaylistItem (Playlist - Song): Cardinalità (0,N) da entrambi i lati. Una playlist può contenere molti brani, ma anche nessuno (nel momento della creazione è vuota). Un brano può apparire in più playlist, ma anche in nessuna. Gli attributi position e added_at descrivono questa associazione.
 
-- QueueItem (Queue - Song): Cardinalità (,N) lato Queue e (0,N) lato Song. Una coda può non avere ancora nessun brano, mentre un brano può non essere inserito in nessuna coda, ma può essere anche inserito in più code.
+- QueueItem (Queue - Song): Cardinalità (0,N) lato Queue e (0,N) lato Song. Una coda può non avere ancora nessun brano, mentre un brano può non essere inserito in nessuna coda, ma può essere anche inserito in più code.
 La coda è composta da una lista ordinata di brani, gli attributi position e added_at descrivono questa associazione.
 
 - IsPlaying (Queue - Song): Cardinalità (1,1) lato Queue e (0,N) lato Song. Su una coda è in riproduzione un solo brano, mentre un brano può non essere in riproduzione su nessuna coda oppure può esserlo su più code.
@@ -68,7 +68,7 @@ Scelte di progettazione
 
 - Attributo position: Presente sia in PlaylistItems che in QueueItems per permettere l'ordinamento corretto dei brani, permettere l'ordinamento manuale da parte dell'utente e permette di mantenere ordine in generale.
 
-- Tabella Queue: Il campo current_song_id_api memorizza lo stato attuale della riproduzione, mentre current_position tiene traccia dell'indice numerico nella lista QueueItems, facilitando il passaggio al brano successivo o il ritorno al precedente.
+- Tabella Queue: Il campo current_song_id_api memorizza lo stato attuale della riproduzione, mentre current_position memorizza la posizione del brano corrente all'interno della coda., facilitando il passaggio a quello successivo o il ritorno a quello precedente.
 
 
 
@@ -79,7 +79,7 @@ Il database "sound_shelf" è stato implementato per l'applicazione utilizzando i
 Scelte di progettazione
 - Tipo di dato per collegamento ad API esterne: Per le colonne artist_id_api, song_id_api e current_song_id_api, è stato utilizzato il tipo bigint perchè gli ID generati da piattaforme esterne come Deezer possono superare la dimensione del tipo INT.
 
-- Integrità referenziale: Tutte le relazioni sono state protette con il vincolo ON DELETE CASCADE. Questo garantisce che, alla cancellazione di un utente, il DBMS elimini automaticamente tutte le relative playlist, i seguiti e la coda di riproduzione, evitando dati inutili e garantendo la pulizia del DB.
+- Integrità referenziale: Tutte le foreign key sono state definite con il comportamento ON DELETE CASCADE, garantendo la rimozione automatica dei record dipendenti quando viene eliminato il record padre.
 
 - Gestione della coda: La tabella Queue contiene la colonna user_id con un vincolo UNIQUE. Questo vincolo implementa fisicamente la cardinalità (1,1) definita nello schema ER, impedendo che un utente possa avere più di una coda di riproduzione attiva contemporaneamente.
 
@@ -112,7 +112,7 @@ FROM follow
 WHERE artist_id_api = 12345;
 
 ### Descrizione Applicazione ###
-L'applicazione SoundShelf è un sistema di organizzazione e gestione della libreria musicale basato sul catalogo globale del servizio di streming musicale Deezer.
+L'applicazione SoundShelf è un sistema di organizzazione e gestione della libreria musicale basato sul catalogo globale del servizio di streaming musicale Deezer.
 
 Obiettivo del progetto
 L'obiettivo principale del progetto non è la riproduzione diretta dei brani, operazione limitata dalle policy di copyright e dalle restrizioni delle API di streaming, ma la creazione di un'interfaccia personalizzata per la gestione dei dati musicali. L'utente ha la possibilità di esplorare il catalogo di Deezer per creare la propria esperienza musicale salvando i dati nel database locale di SoundShelf.
@@ -122,6 +122,6 @@ Funzionalità principali
 
 - Gestione playlist: L'utente può creare playlist personalizzate. Il database locale memorizza solo i riferimenti ai dati presenti nel catalogo di Deezer.
 
-- Sistema di following: L'utente ha la possibilità di seguire i suoi artisti preferiti.
+- Sistema di follow degli artisti: L'utente ha la possibilità di seguire i suoi artisti preferiti.
 
 - Coda di ascolto: Anche se l'audio non viene riprodotto fisicamente, l'app implementa la logica di riproduzione dei brani, implementando anche la struttura della coda di riproduzione. Questo serve per simulare il comportamento di un player reale, permettendo all'utente di saltare da un brano all'altro o di riordinare la coda nel modo che preferisce.
