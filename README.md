@@ -1,7 +1,7 @@
 Bonaventura Marco   5°ainf
 
 ### Analisi Schema ER ###
-Lo schema ER rappresenta la struttura logica del database dell'applicazione integrando dati salvati sul database locale con dati esterni gestiti tramite le API dell'applicazione musicale Deezer.
+Lo schema Entity-Relationship (ER) rappresenta il modello concettuale dei dati dell'applicazione integrando dati salvati sul database locale con dati esterni gestiti tramite le API dell'applicazione musicale Deezer.
 
 Descrizione entità
 - User: Rappresenta un utente registrato. Salva i dati di accesso e le informazioni di un utente.
